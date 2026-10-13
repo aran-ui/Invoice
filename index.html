@@ -228,7 +228,6 @@
               <table class="w-full text-sm">
                 <tr><td class="text-gray-500 py-1 w-1/3">Check-in</td><td class="font-semibold text-brand-black text-right" id="outCheckIn">-</td></tr>
                 <tr id="rowOutCheckOut"><td class="text-gray-500 py-1">Check-out</td><td class="font-semibold text-brand-black text-right" id="outCheckOut">-</td></tr>
-                <tr><td class="text-gray-500 py-1">Durasi Inap</td><td class="font-semibold text-brand-black text-right" id="outDuration">-</td></tr>
               </table>
             </div>
           </div>
@@ -658,7 +657,6 @@
       document.getElementById('outCheckIn').textContent = formatDate(checkIn);
       document.getElementById('rowOutCheckOut').style.display = 'table-row';
       document.getElementById('outCheckOut').textContent = formatDate(checkOut);
-      document.getElementById('outDuration').textContent = `${calcDays} Malam`;
 
       document.getElementById('invoice-items').innerHTML = invoiceItemsHtml;
       document.getElementById('outGrandTotal').textContent = `Rp ${formatRp(grandTotal)}`;
