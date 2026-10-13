@@ -1325,13 +1325,22 @@
         }
 
         async function saveToSheets() {
-            const name = document.getElementById('inpName').value;
-            if(!name) { 
-                showNotification("Perhatian", "Nama tamu wajib diisi sebelum menyimpan data!", "warning"); 
-                return; 
-            }
+            const name = document.getElementById('inpName').value.trim();
+  const phone = document.getElementById('inpPhone').value.trim();
 
-            // Kumpulkan data sesuai struktur Google Sheets
+  // Validasi Nama Tamu
+  if (!name) {
+    showNotification("Perhatian", "Nama tamu wajib diisi sebelum menyimpan data!", "warning");
+    document.getElementById('inpName').focus();
+    return;
+  }
+
+  // Validasi No. WhatsApp
+  if (!phone) {
+    showNotification("Perhatian", "No. WhatsApp wajib diisi sebelum menyimpan data!", "warning");
+    document.getElementById('inpPhone').focus();
+    return;
+  }            // Kumpulkan data sesuai struktur Google Sheets
             const service = document.getElementById('inpService').value;
             const checkIn = document.getElementById('inpCheckIn').value;
             const checkOut = service === 'Kost' ? '-' : document.getElementById('inpCheckOut').value;
