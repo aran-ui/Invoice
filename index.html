@@ -30,10 +30,10 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
     body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; min-height: 100vh; }
     
-    /* Format Kertas A4 Ringkas Presisi (Bebas Lembar Kosong) */
+    /* Format Kertas A4 Ringkas Dynamic Height */
     .paper-page { 
       width: 21cm; 
-      height: 28.5cm; 
+      min-height: 28cm;
       padding: 1cm 1.2cm; 
       margin: 0 auto 1.5cm auto; 
       background: white; 
@@ -44,7 +44,7 @@
     }
     
     .logo-img {
-      max-height: 42px;
+      max-height: 40px;
       width: auto;
       object-fit: contain;
     }
@@ -235,15 +235,14 @@
       <!-- PDF Render Area -->
       <div id="pdf-render-area" class="w-full flex flex-col items-center">
         <!-- HALAMAN 1: INVOICE -->
-        <div id="page-invoice" class="paper-page flex flex-col justify-between">
-          <!-- Watermark Logo OFO di Invoice -->
+        <div id="page-invoice" class="paper-page flex flex-col justify-start gap-3">
           <img src="OFO.png" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[70%] opacity-[0.04] pointer-events-none select-none -rotate-12" alt="Watermark Invoice">
 
           <div>
             <div class="absolute top-0 left-0 w-full h-2 bg-brand-yellow"></div>
-            <div class="flex justify-between items-start pb-4 mb-4 border-b border-gray-200 mt-1">
+            <div class="flex justify-between items-start pb-3 mb-3 border-b border-gray-200 mt-1">
               <div>
-                <div class="mb-2">
+                <div class="mb-1">
                   <img src="OFO.png" alt="OFO Kost Premium" class="logo-img">
                 </div>
                 <div class="text-[10px] text-gray-500 leading-snug">
@@ -254,7 +253,7 @@
               </div>
               <div class="text-right flex flex-col items-end">
                 <h2 class="text-2xl font-black text-brand-black tracking-[0.15em] uppercase mb-1">INVOICE</h2>
-                <div class="bg-gray-50 border border-gray-200 px-3 py-1.5 rounded text-right min-w-[160px]">
+                <div class="bg-gray-50 border border-gray-200 px-3 py-1 rounded text-right min-w-[160px]">
                   <p class="text-[9px] text-gray-500 uppercase font-bold tracking-wider mb-0.5">No. Tagihan</p>
                   <p class="font-bold text-brand-black text-xs mb-1" id="outInvNumber">...</p>
                   <p class="text-[9px] text-gray-500 uppercase font-bold tracking-wider mb-0.5">Tanggal Terbit</p>
@@ -266,7 +265,7 @@
               </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-6 mb-4">
+            <div class="grid grid-cols-2 gap-6 mb-3">
               <div class="space-y-0.5">
                 <p class="text-[9px] text-gray-400 uppercase font-bold tracking-widest mb-1 border-b border-gray-100 pb-0.5">Ditagihkan Kepada</p>
                 <p class="font-black text-base text-brand-black tracking-tight" id="outName">-</p>
@@ -281,7 +280,7 @@
               </div>
             </div>
 
-            <table class="w-full text-left border-collapse text-[11px] mb-4">
+            <table class="w-full text-left border-collapse text-[11px] mb-3">
               <thead>
                 <tr class="border-y-2 border-brand-black">
                   <th class="py-1.5 px-1.5 font-bold text-[9px] uppercase tracking-wider text-gray-500">Deskripsi Layanan</th>
@@ -293,14 +292,14 @@
               <tbody id="invoice-items" class="divide-y divide-gray-100"></tbody>
             </table>
 
-            <div class="flex flex-col sm:flex-row justify-between items-start gap-4 mb-3">
+            <div class="flex flex-col sm:flex-row justify-between items-start gap-4 mb-2">
               <div class="w-full sm:w-1/2">
                 <p class="text-[9px] text-gray-400 uppercase font-bold tracking-widest mb-0.5 border-b border-gray-100 pb-0.5">Instruksi Pembayaran</p>
-                <div class="bg-gray-50 p-2.5 rounded-lg border border-gray-100 mt-1">
-                  <p class="text-[10px] text-gray-500 mb-0.5">Transfer Bank Mandiri:</p>
+                <div class="bg-gray-50 p-2 rounded-lg border border-gray-100 mt-1">
+                  <p class="text-[9.5px] text-gray-500 mb-0.5">Transfer Bank Mandiri:</p>
                   <p class="font-bold text-sm text-brand-black tracking-widest font-mono">171-05-00004-000</p>
-                  <p class="text-[11px] font-semibold text-gray-700 mb-1">A/N ARAN RUANGAN KERJA</p>
-                  <p class="text-[8.5px] text-gray-500 leading-tight italic">Pembayaran via Mandiri, QRIS, & Tunai (Cash) di resepsionis.</p>
+                  <p class="text-[10.5px] font-semibold text-gray-700 mb-0.5">A/N ARAN RUANGAN KERJA</p>
+                  <p class="text-[8px] text-gray-500 leading-tight italic">Pembayaran via Mandiri, QRIS, & Tunai (Cash) di resepsionis.</p>
                 </div>
               </div>
               <div class="w-full sm:w-1/2">
@@ -317,9 +316,9 @@
                     <span class="font-medium">Metode Pembayaran</span>
                     <span class="font-bold text-brand-black" id="outMethod">-</span>
                   </div>
-                  <div class="flex justify-between items-center py-2 px-2.5 bg-brand-black text-brand-yellow rounded-lg shadow-sm mt-2">
+                  <div class="flex justify-between items-center py-1.5 px-2.5 bg-brand-black text-brand-yellow rounded-lg shadow-sm mt-1.5">
                     <span class="font-bold uppercase tracking-widest text-[8.5px] text-white">Sisa Tagihan</span>
-                    <span id="outBalance" class="text-lg font-black tracking-tight">-</span>
+                    <span id="outBalance" class="text-base font-black tracking-tight">-</span>
                   </div>
                 </div>
               </div>
@@ -331,7 +330,7 @@
             </div>
           </div>
 
-          <!-- Rincian Kebijakan & Catatan Penting Lengkap -->
+          <!-- Bagian Bawah Invoice Diletakkan Pas Setelah Sisa Tagihan -->
           <div class="border-t border-gray-200 pt-2 text-[8px] leading-tight flex flex-col md:flex-row gap-3">
             <div class="w-full md:w-5/12">
               <p class="font-bold uppercase tracking-widest mb-1 text-brand-black">Kebijakan Pemesanan</p>
@@ -366,72 +365,80 @@
         </div>
 
         <!-- HALAMAN 2: KWITANSI -->
-        <div id="page-kwitansi" class="paper-page hidden flex flex-col justify-between">
-          <div class="border-[5px] border-double border-gray-400 p-6 h-full flex flex-col justify-between relative overflow-hidden bg-white">
+        <div id="page-kwitansi" class="paper-page hidden flex flex-col justify-start gap-3">
+          <div class="border-[5px] border-double border-gray-400 p-5 flex flex-col gap-3 relative overflow-hidden bg-white">
             <img src="OFO.png" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[70%] opacity-[0.04] pointer-events-none select-none -rotate-12" alt="Watermark Kwitansi">
             
-            <div>
-              <div class="flex justify-between items-center border-b-2 border-brand-black pb-3 mb-6 z-10 relative">
-                <div>
-                  <img src="OFO.png" alt="OFO Kost Premium" class="logo-img">
-                </div>
-                <div class="text-right">
-                  <h2 class="text-2xl font-black text-brand-black tracking-widest uppercase">KWITANSI</h2>
-                </div>
+            <div class="flex justify-between items-center border-b-2 border-brand-black pb-2 z-10 relative">
+              <div>
+                <img src="OFO.png" alt="OFO Kost Premium" class="logo-img">
+              </div>
+              <div class="text-right">
+                <h2 class="text-2xl font-black text-brand-black tracking-widest uppercase">KWITANSI</h2>
+              </div>
+            </div>
+
+            <div class="space-y-3 text-xs z-10 relative pt-1">
+              <div class="flex pb-1">
+                <div class="w-36 font-bold text-gray-700 uppercase tracking-wide">Telah Terima Dari</div>
+                <div class="w-4">:</div>
+                <div class="flex-1 font-bold text-base text-brand-black border-b border-dotted border-gray-400 pb-0.5" id="kwiName">-</div>
+              </div>
+              <div class="flex pb-1">
+                <div class="w-36 font-bold text-gray-700 uppercase tracking-wide">Uang Sejumlah</div>
+                <div class="w-4">:</div>
+                <div class="flex-1 bg-gray-100/80 px-3 py-1.5 italic text-gray-800 font-bold rounded border border-gray-200" id="kwiTerbilang">-</div>
               </div>
 
-              <div class="space-y-5 text-xs z-10 relative pt-2">
-                <div class="flex pb-1.5">
-                  <div class="w-40 font-bold text-gray-700 uppercase tracking-wide">Telah Terima Dari</div>
-                  <div class="w-4">:</div>
-                  <div class="flex-1 font-bold text-base text-brand-black border-b border-dotted border-gray-400 pb-0.5" id="kwiName">-</div>
-                </div>
-                <div class="flex pb-1.5">
-                  <div class="w-40 font-bold text-gray-700 uppercase tracking-wide">Uang Sejumlah</div>
-                  <div class="w-4">:</div>
-                  <div class="flex-1 bg-gray-100/80 px-3 py-2 italic text-gray-800 font-bold rounded border border-gray-200" id="kwiTerbilang">-</div>
-                </div>
-                <div class="flex pb-1.5">
-                  <div class="w-40 font-bold text-gray-700 uppercase tracking-wide">Untuk Pembayaran</div>
-                  <div class="w-4">:</div>
-                  <div class="flex-1 text-gray-800 font-medium leading-relaxed border-b border-dotted border-gray-400 pb-0.5 min-h-[2.5rem]" id="kwiDesc">-</div>
-                </div>
-                <div class="flex pb-1.5">
-                  <div class="w-40 font-bold text-gray-700 uppercase tracking-wide">Metode Bayar</div>
-                  <div class="w-4">:</div>
-                  <div class="flex-1 font-bold text-brand-black border-b border-dotted border-gray-400 pb-0.5" id="kwiMethod">-</div>
+              <!-- Posisi Nominal Angka diletakkan di atas setelah terbilang nominal -->
+              <div class="flex items-center gap-3 py-1 bg-gray-50 border border-gray-200 rounded px-3 w-fit">
+                <span class="text-xs font-bold text-gray-500 uppercase">Nominal Rp :</span>
+                <span class="font-black text-brand-black text-base" id="kwiTotal">0</span>
+              </div>
+
+              <!-- Menampilkan Check-in & Check-out -->
+              <div class="flex pb-1" id="kwiDatesRow">
+                <div class="w-36 font-bold text-gray-700 uppercase tracking-wide">Periode Inap</div>
+                <div class="w-4">:</div>
+                <div class="flex-1 font-bold text-gray-800 border-b border-dotted border-gray-400 pb-0.5" id="kwiDatesDisplay">-</div>
+              </div>
+
+              <div class="flex pb-1">
+                <div class="w-36 font-bold text-gray-700 uppercase tracking-wide">Untuk Pembayaran</div>
+                <div class="w-4">:</div>
+                <div class="flex-1 text-gray-800 font-medium leading-relaxed border-b border-dotted border-gray-400 pb-0.5 min-h-[2rem]" id="kwiDesc">-</div>
+              </div>
+              <div class="flex pb-1">
+                <div class="w-36 font-bold text-gray-700 uppercase tracking-wide">Metode Bayar</div>
+                <div class="w-4">:</div>
+                <div class="flex-1 font-bold text-brand-black border-b border-dotted border-gray-400 pb-0.5" id="kwiMethod">-</div>
+              </div>
+
+              <!-- Tanda Tangan & Penerima diletakkan setelah metode bayar -->
+              <div class="flex justify-end pt-2 z-10">
+                <div class="text-center w-44">
+                  <p class="text-xs mb-0.5 text-gray-600">Kediri, <span id="kwiDate" class="font-bold text-brand-black">...</span></p>
+                  <p class="text-xs mb-10">Penerima,</p>
+                  <p class="font-bold border-b border-black w-full inline-block text-xs">( OFO Management )</p>
                 </div>
               </div>
             </div>
 
-            <div>
-              <div class="flex justify-between items-end z-10 mb-6">
-                <div class="bg-gray-100 border-2 border-brand-black text-brand-black font-black text-xl px-6 py-3 rounded shadow-sm flex items-center gap-2">
-                  <span class="text-xs font-bold text-gray-500">Rp</span>
-                  <span id="kwiTotal">0</span>
-                </div>
-                <div class="text-center w-44">
-                  <p class="text-xs mb-1 text-gray-600">Kediri, <span id="kwiDate" class="font-bold text-brand-black">...</span></p>
-                  <p class="text-xs mb-12">Penerima,</p>
-                  <p class="font-bold border-b border-black w-full inline-block text-xs">( OFO Management )</p>
-                </div>
+            <!-- Bagian Bawah Kwitansi Pas Setelah OFO Management & Dilengkapi -->
+            <div class="border-t border-gray-200 pt-2 text-[7.5px] leading-tight flex flex-col md:flex-row gap-3">
+              <div class="w-full md:w-5/12">
+                <p class="font-bold uppercase tracking-widest mb-0.5 text-brand-black">Kebijakan Pemesanan</p>
+                <ul class="list-disc pl-3 text-gray-600 space-y-0.5">
+                  <li>Pembayaran DP maupun pelunasan dapat dilakukan melalui transfer Mandiri / QRIS / cash saat check in.</li>
+                  <li>Pembatalan mendadak (≤ H-3) dikenakan biaya 100%.</li>
+                  <li>Seluruh pembayaran tidak dapat direfund.</li>
+                </ul>
               </div>
-
-              <div class="border-t border-gray-200 pt-2 text-[7.5px] leading-tight flex flex-col md:flex-row gap-3">
-                <div class="w-full md:w-5/12">
-                  <p class="font-bold uppercase tracking-widest mb-1 text-brand-black">Kebijakan Pemesanan</p>
-                  <ul class="list-disc pl-3 text-gray-600 space-y-0.5">
-                    <li>Pembayaran DP maupun pelunasan dapat melalui Mandiri / QRIS / cash saat check in.</li>
-                    <li>Pembatalan mendadak (≤ H-3) dikenakan biaya 100%.</li>
-                    <li>Seluruh pembayaran tidak dapat direfund.</li>
-                  </ul>
-                </div>
-                <div class="w-full md:w-7/12">
-                  <p class="font-bold uppercase tracking-widest mb-1 text-brand-black">Catatan Penting!</p>
-                  <p class="text-gray-600 mb-0.5">• <span class="font-bold text-brand-black">OFO Kost berbasis syariah</span>. Check in 14.00, check out 12.00.</p>
-                  <p class="text-gray-600">• Dilarang merokok di kamar, buat keributan, atau merusak fasilitas.</p>
-                  <p class="font-semibold text-red-600 mt-0.5">⚠️ Denda pelanggaran mulai Rp100.000 hingga biaya pengganti barang.</p>
-                </div>
+              <div class="w-full md:w-7/12">
+                <p class="font-bold uppercase tracking-widest mb-0.5 text-brand-black">Catatan Penting!</p>
+                <p class="text-gray-600 mb-0.5">• <span class="font-bold text-brand-black">OFO Kost berbasis syariah</span>. Check in 14.00, check out 12.00.</p>
+                <p class="text-gray-600">• Dilarang merokok di area kamar, merusak fasilitas, atau membuat keributan.</p>
+                <p class="font-semibold text-red-600 mt-0.5">⚠️ Denda pelanggaran mulai Rp100.000 hingga pengganti barang.</p>
               </div>
             </div>
           </div>
@@ -877,13 +884,23 @@
         containerNote.classList.add('hidden');
       }
 
-      // Kwitansi Data
+      // Kwitansi Data Update
       document.getElementById('kwiName').textContent = name;
       document.getElementById('kwiTotal').textContent = formatRp(payment);
       document.getElementById('kwiDate').textContent = formatDate(new Date().toISOString().split('T')[0]);
       document.getElementById('kwiMethod').textContent = method;
       document.getElementById('kwiDesc').textContent = `Pembayaran ${status === 'DP' ? 'DP' : 'Pelunasan'} ${serviceSummaryDesc.join(", ") || 'Layanan OFO Kost'}.`;
       document.getElementById('kwiTerbilang').textContent = terbilang(payment) + " Rupiah";
+
+      // Tampilkan Periode Check In/Out pada Kwitansi
+      const kwiDatesDisplay = document.getElementById('kwiDatesDisplay');
+      if (checkIn && checkOut) {
+        kwiDatesDisplay.textContent = `${formatDate(checkIn)} s/d ${formatDate(checkOut)}`;
+      } else if (checkIn) {
+        kwiDatesDisplay.textContent = `${formatDate(checkIn)}`;
+      } else {
+        kwiDatesDisplay.textContent = "-";
+      }
 
       // Kwitansi Kondisional
       const kwiPage = document.getElementById('page-kwitansi');
@@ -913,7 +930,6 @@
       window.print();
     }
 
-    // DOWNLOAD PDF PRESISI TANPA LEMBAR KOSONG
     function triggerPdfDownload(mode) {
       if (!mode) return;
       if (!isDataFilled()) {
