@@ -92,6 +92,7 @@
             </div>
           </div>
 
+          <!-- Detail Layanan & Kamar -->
           <div class="space-y-4 bg-gray-50 p-4 rounded-lg border border-gray-100">
             <div class="flex justify-between items-center">
               <h3 class="text-sm font-bold uppercase text-gray-500 tracking-wider">Detail Layanan & Kamar</h3>
@@ -103,7 +104,7 @@
             <!-- List Kamar Dinamis -->
             <div id="roomItemsList" class="space-y-3"></div>
 
-            <!-- Tanggal Inap -->
+            <!-- Tanggal Inap Informasi Invoice -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3 pt-3 border-t border-gray-200">
               <div>
                 <label class="block text-xs font-semibold text-gray-700 mb-1">Tgl Check-in *</label>
@@ -112,14 +113,6 @@
               <div id="containerCheckOut">
                 <label class="block text-xs font-semibold text-gray-700 mb-1">Tgl Check-out *</label>
                 <input type="date" id="inpCheckOut" onchange="updatePreview()" class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:border-brand-black outline-none">
-              </div>
-              <div id="containerKostDuration" class="hidden md:col-span-2">
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Paket Durasi Kost *</label>
-                <select id="inpKostDuration" onchange="updatePreview()" class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:border-brand-black bg-white outline-none">
-                  <option value="1 Minggu" data-val="1">1 Minggu</option>
-                  <option value="2 Minggu" data-val="1">2 Minggu</option>
-                  <option value="1 Bulan" data-val="1">1 Bulan</option>
-                </select>
               </div>
             </div>
           </div>
@@ -235,7 +228,7 @@
               <table class="w-full text-sm">
                 <tr><td class="text-gray-500 py-1 w-1/3">Check-in</td><td class="font-semibold text-brand-black text-right" id="outCheckIn">-</td></tr>
                 <tr id="rowOutCheckOut"><td class="text-gray-500 py-1">Check-out</td><td class="font-semibold text-brand-black text-right" id="outCheckOut">-</td></tr>
-                <tr><td class="text-gray-500 py-1">Durasi</td><td class="font-semibold text-brand-black text-right" id="outDuration">-</td></tr>
+                <tr><td class="text-gray-500 py-1">Durasi Inap</td><td class="font-semibold text-brand-black text-right" id="outDuration">-</td></tr>
               </table>
             </div>
           </div>
@@ -513,10 +506,14 @@
             </select>
           </div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
           <div>
             <label class="block text-[10px] font-semibold text-gray-600 mb-0.5">Jumlah Kamar *</label>
             <input type="number" class="rm-qty w-full px-2 py-1.5 text-xs rounded border border-gray-300 outline-none font-bold text-center" value="1" min="1" oninput="updatePreview()">
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-gray-600 mb-0.5">Durasi (Hari/Malam) *</label>
+            <input type="number" class="rm-duration w-full px-2 py-1.5 text-xs rounded border border-gray-300 outline-none font-bold text-center" value="1" min="1" oninput="updatePreview()">
           </div>
           <div>
             <label class="block text-[10px] font-semibold text-gray-600 mb-0.5">Tarif / Kamar *</label>
@@ -535,7 +532,6 @@
       const items = document.querySelectorAll('.room-item');
       if (items.length > 1) {
         document.getElementById(id).remove();
-        checkKostVisibility();
         updatePreview();
       } else {
         showNotification("Perhatian", "Minimal harus ada 1 kamar terisi!", "warning");
@@ -567,25 +563,7 @@
       if (defaultRoomRates[selectedType]) {
         priceInput.value = defaultRoomRates[selectedType];
       }
-      checkKostVisibility();
       updatePreview();
-    }
-
-    function checkKostVisibility() {
-      let hasKost = false;
-      document.querySelectorAll('.rm-service').forEach(s => {
-        if (s.value === 'Kost') hasKost = true;
-      });
-
-      const checkoutContainer = document.getElementById('containerCheckOut');
-      const kostDurationContainer = document.getElementById('containerKostDuration');
-
-      checkoutContainer.classList.remove('hidden');
-      if (hasKost) {
-        kostDurationContainer.classList.remove('hidden');
-      } else {
-        kostDurationContainer.classList.add('hidden');
-      }
     }
 
     function updatePreview() {
@@ -598,10 +576,6 @@
       const method = document.getElementById('inpMethod').value;
       const customInv = document.getElementById('inpCustomInv').value.trim();
 
-      const kostDurSelect = document.getElementById('inpKostDuration');
-      const kostDurText = kostDurSelect.options[kostDurSelect.selectedIndex] ? kostDurSelect.options[kostDurSelect.selectedIndex].text : '1 Minggu';
-      const kostDurVal = parseInt(kostDurSelect.options[kostDurSelect.selectedIndex] ? kostDurSelect.options[kostDurSelect.selectedIndex].getAttribute('data-val') : 1) || 1;
-
       const calcDays = calcNights(checkIn, checkOut);
 
       let roomTotal = 0;
@@ -612,25 +586,19 @@
         const service = item.querySelector('.rm-service').value;
         const roomType = item.querySelector('.rm-type').value;
         const qty = parseInt(item.querySelector('.rm-qty').value) || 1;
+        const dur = parseInt(item.querySelector('.rm-duration').value) || 1;
         const rate = parseInt(item.querySelector('.rm-price').value) || 0;
 
-        let nights = service === 'Kost' ? kostDurVal : calcDays;
-        let durationText = service === 'Kost' ? `${kostDurText} (${calcDays} Malam)` : `${nights} Malam`;
-
-        let durationMultiplier = 1;
-        if (service === 'Hotel') durationMultiplier = nights;
-        else if (service === 'Kost') durationMultiplier = kostDurVal;
-        else if (service === 'Longstay') durationMultiplier = 1;
-
-        let subTotal = rate * durationMultiplier * qty;
+        let subTotal = rate * dur * qty;
         roomTotal += subTotal;
 
-        roomSummaryDesc.push(`${service} (${roomType}) ${qty} kamar`);
+        let unitLabel = service === 'Kost' ? 'Bulan/Minggu' : 'Malam';
+        roomSummaryDesc.push(`${service} (${roomType}) ${qty} kamar x ${dur} ${unitLabel}`);
 
         invoiceItemsHtml += `
           <tr class="border-b border-gray-100">
             <td class="py-2 px-2 font-medium text-gray-800">${service} - ${roomType}</td>
-            <td class="py-2 px-2 text-center text-gray-700">${qty} Kamar / ${durationText}</td>
+            <td class="py-2 px-2 text-center text-gray-700">${qty} Kamar / ${dur} ${unitLabel}</td>
             <td class="py-2 px-2 text-right text-gray-700">${formatRp(rate)}</td>
             <td class="py-2 px-2 text-right font-medium text-brand-black">${formatRp(subTotal)}</td>
           </tr>
@@ -704,7 +672,7 @@
       document.getElementById('kwiDate').textContent = formatDate(new Date().toISOString().split('T')[0]);
       document.getElementById('kwiMethod').textContent = method;
 
-      let desc = `Pembayaran ${status === 'DP' ? 'DP' : 'Pelunasan'} Sewa ${roomSummaryDesc.join(", ")} selama ${calcDays} malam. (Ref: ${displayRefInv})`;
+      let desc = `Pembayaran ${status === 'DP' ? 'DP' : 'Pelunasan'} Sewa ${roomSummaryDesc.join(", ")}. (Ref: ${displayRefInv})`;
       if (extraTotal > 0) desc += ` Termasuk biaya layanan tambahan.`;
       document.getElementById('kwiDesc').textContent = desc;
       document.getElementById('kwiTerbilang').textContent = terbilang(payment) + " Rupiah";
@@ -814,24 +782,18 @@
       const checkOut = document.getElementById('inpCheckOut').value;
       const calcDays = calcNights(checkIn, checkOut);
 
-      const kostDurSelect = document.getElementById('inpKostDuration');
-      const kostDurText = kostDurSelect.options[kostDurSelect.selectedIndex].text;
-
-      let roomServices = [], roomTypes = [], roomQtyList = [], totalRoomPrice = 0;
+      let roomServices = [], roomQtyList = [], totalRoomPrice = 0;
 
       document.querySelectorAll('.room-item').forEach(item => {
         const service = item.querySelector('.rm-service').value;
         const roomType = item.querySelector('.rm-type').value;
         const qty = parseInt(item.querySelector('.rm-qty').value) || 1;
+        const dur = parseInt(item.querySelector('.rm-duration').value) || 1;
         const rate = parseInt(item.querySelector('.rm-price').value) || 0;
 
-        let durationMultiplier = 1;
-        if (service === 'Hotel') durationMultiplier = calcDays;
-        else if (service === 'Kost') durationMultiplier = parseFloat(kostDurSelect.options[kostDurSelect.selectedIndex].getAttribute('data-val')) || 1;
-        else if (service === 'Longstay') durationMultiplier = 1;
-
-        totalRoomPrice += rate * durationMultiplier * qty;
-        roomServices.push(`${service} - ${roomType}`);
+        totalRoomPrice += rate * dur * qty;
+        let unitLabel = service === 'Kost' ? 'Bulan/Minggu' : 'Malam';
+        roomServices.push(`${service} - ${roomType} (${qty} Kamar x ${dur} ${unitLabel})`);
         roomQtyList.push(qty);
       });
 
