@@ -498,6 +498,20 @@
       return diffDays > 0 ? diffDays : 1;
     }
 
+    function showNotification(title, message, iconType) {
+      document.getElementById('notifTitle').textContent = title;
+      document.getElementById('notifMessage').textContent = message;
+      const iconContainer = document.getElementById('notifIcon');
+      if (iconType === 'success') {
+        iconContainer.innerHTML = '<i class="fa-solid fa-circle-check text-green-500"></i>';
+      } else if (iconType === 'warning') {
+        iconContainer.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-yellow-500"></i>';
+      } else {
+        iconContainer.innerHTML = '<i class="fa-solid fa-circle-xmark text-red-500"></i>';
+      }
+      document.getElementById('notifModal').classList.remove('hidden');
+    }
+
     function handleServiceChange() {
       const service = document.getElementById('inpService').value;
       const roomSelect = document.getElementById('inpRoom');
