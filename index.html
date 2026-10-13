@@ -1442,14 +1442,23 @@
                         throw new Error(result.message || 'Gagal menyimpan data ke Spreadsheet.');
                     }
                 }
-            } catch (error) {
-                console.error('Error!', error.message);
-                showNotification("Gagal Menyimpan", 'Terjadi kesalahan sistem: ' + error.message, "error");
-            } finally {
-                // Kembalikan tombol seperti semula
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
+           async function saveToSheets() {
+  const name = document.getElementById('inpName').value.trim();
+  const phone = document.getElementById('inpPhone').value.trim(); // 1. Ambil nomor WhatsApp
+
+  // Validasi Nama
+  if(!name) {
+    showNotification("Perhatian", "Nama tamu wajib diisi sebelum menyimpan data!", "warning");
+    document.getElementById('inpName').focus();
+    return;
+  }
+
+  // 2. Validasi Nomor WhatsApp
+  if(!phone) {
+    showNotification("Perhatian", "No. WhatsApp wajib diisi sebelum menyimpan data!", "warning");
+    document.getElementById('inpPhone').focus();
+    return;
+  }            }
         }
 
         function downloadPDF() {
