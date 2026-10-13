@@ -1,166 +1,97 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Invoice & Kwitansi - OFO KOST</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- html2pdf.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Invoice & Kwitansi - OFO KOST</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- html2pdf.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body class="bg-gray-100 font-sans p-4 md:p-8">
 
-    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+  <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+    
+    <!-- FORM INPUT -->
+    <div class="bg-white p-6 rounded-xl shadow-md space-y-6">
+      <h2 class="text-xl font-bold text-gray-800 border-b pb-3">Input Data Pemesanan</h2>
+      
+      <!-- Data Penyewa & Kamar -->
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Nama Penyewa</label>
+          <input type="text" id="inpCustomerName" value="Ahmad Subagja" oninput="updatePreview()" class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-yellow-400 outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Tipe Kamar</label>
+            <select id="inpRoomType" onchange="updatePreview()" class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-yellow-400 outline-none">
+              <option value="Kamar Standard">Kamar Standard</option>
+              <option value="Kamar Deluxe">Kamar Deluxe</option>
+              <option value="Kamar VIP">Kamar VIP</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Harga Kamar (Rp)</label>
+            <input type="number" id="inpRoomPrice" value="1500000" oninput="calculateTotal()" class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-yellow-400 outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Tanggal Check-In</label>
+            <input type="date" id="inpCheckIn" onchange="updatePreview()" class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-yellow-400 outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Tanggal Check-Out</label>
+            <input type="date" id="inpCheckOut" onchange="updatePreview()" class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-yellow-400 outline-none">
+          </div>
+        </div>
+      </div>
+
+      <!-- Bagian Multiple Extra Services -->
+      <div class="space-y-4 border-t pt-4">
+        <h3 class="font-semibold text-gray-800">Detail & Layanan Tambahan (Bisa Pilih >1)</h3>
         
-        <!-- FORM INPUT -->
-        <div class="bg-white p-6 rounded-xl shadow-md space-y-6">
-            <h2 class="text-xl font-bold text-gray-800 border-b pb-3">Input Data Pemesanan</h2>
-            
-            <!-- Data Penyewa & Kamar -->
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Nama Penyewa</label>
-                    <input type="text" id="inpCustomerName" value="Ahmad Subagja" oninput="updatePreview()" class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-yellow-400 outline-none">
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Tipe Kamar</label>
-                        <select id="inpRoomType" onchange="updatePreview()" class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-yellow-400 outline-none">
-                            <option value="Kamar Standard">Kamar Standard</option>
-                            <option value="Kamar Deluxe">Kamar Deluxe</option>
-                            <option value="Kamar VIP">Kamar VIP</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Harga Kamar (Rp)</label>
-                        <input type="number" id="inpRoomPrice" value="1500000" oninput="calculateTotal()" class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-yellow-400 outline-none">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Tanggal Check-In</label>
-                        <input type="date" id="inpCheckIn" onchange="updatePreview()" class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-yellow-400 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Tanggal Check-Out</label>
-                        <input type="date" id="inpCheckOut" onchange="updatePreview()" class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-yellow-400 outline-none">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bagian Multiple Extra Services -->
-            <div class="space-y-4 border-t pt-4">
-                <h3 class="font-semibold text-gray-800">Detail & Layanan Tambahan (Bisa Pilih >1)</h3>
-                
-                <!-- Checkbox Predefined Services -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-gray-50 p-4 rounded-lg">
-                    <label class="flex items-center space-x-3 cursor-pointer">
-                        <input type="checkbox" name="extra_service" value="Laundry Mingguan" data-price="100000" onchange="calculateTotal()" class="service-checkbox w-4 h-4 text-yellow-500 rounded focus:ring-yellow-400">
-                        <span class="text-sm text-gray-700">Laundry (Rp 100.000)</span>
-                    </label>
-                    <label class="flex items-center space-x-3 cursor-pointer">
-                        <input type="checkbox" name="extra_service" value="Pembersihan Kamar" data-price="50000" onchange="calculateTotal()" class="service-checkbox w-4 h-4 text-yellow-500 rounded focus:ring-yellow-400">
-                        <span class="text-sm text-gray-700">Pembersihan (Rp 50.000)</span>
-                    </label>
-                    <label class="flex items-center space-x-3 cursor-pointer">
-                        <input type="checkbox" name="extra_service" value="Sewa Parkir Mobil" data-price="150000" onchange="calculateTotal()" class="service-checkbox w-4 h-4 text-yellow-500 rounded focus:ring-yellow-400">
-                        <span class="text-sm text-gray-700">Parkir Mobil (Rp 150.000)</span>
-                    </label>
-                    <label class="flex items-center space-x-3 cursor-pointer">
-                        <input type="checkbox" name="extra_service" value="WiFi High Speed 50Mbps" data-price="75000" onchange="calculateTotal()" class="service-checkbox w-4 h-4 text-yellow-500 rounded focus:ring-yellow-400">
-                        <span class="text-sm text-gray-700">WiFi Dedicated (Rp 75.000)</span>
-                    </label>
-                </div>
-
-                <!-- Custom Services Rows -->
-                <div id="custom-services-container" class="space-y-2"></div>
-
-                <button type="button" onclick="addCustomServiceRow()" class="text-sm font-semibold text-yellow-600 hover:text-yellow-700 flex items-center gap-1">
-                    <i class="fa-solid fa-circle-plus"></i> Tambah Extra Service Kustom
-                </button>
-            </div>
-
-            <!-- Tombol Cetak PDF -->
-            <button onclick="downloadPDF()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 rounded-lg transition shadow">
-                <i class="fa-solid fa-file-pdf mr-2"></i> Download Invoice PDF
-            </button>
+        <!-- Checkbox Predefined Services -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-gray-50 p-4 rounded-lg">
+          <label class="flex items-center space-x-3 cursor-pointer">
+            <input type="checkbox" name="extra_service" value="Laundry Mingguan" data-price="100000" onchange="calculateTotal()" class="service-checkbox w-4 h-4 text-yellow-500 rounded focus:ring-yellow-400">
+            <span class="text-sm text-gray-700">Laundry (Rp 100.000)</span>
+          </label>
+          <label class="flex items-center space-x-3 cursor-pointer">
+            <input type="checkbox" name="extra_service" value="Pembersihan Kamar" data-price="50000" onchange="calculateTotal()" class="service-checkbox w-4 h-4 text-yellow-500 rounded focus:ring-yellow-400">
+            <span class="text-sm text-gray-700">Pembersihan (Rp 50.000)</span>
+          </label>
+          <label class="flex items-center space-x-3 cursor-pointer">
+            <input type="checkbox" name="extra_service" value="Sewa Parkir Mobil" data-price="150000" onchange="calculateTotal()" class="service-checkbox w-4 h-4 text-yellow-500 rounded focus:ring-yellow-400">
+            <span class="text-sm text-gray-700">Parkir Mobil (Rp 150.000)</span>
+          </label>
+          <label class="flex items-center space-x-3 cursor-pointer">
+            <input type="checkbox" name="extra_service" value="WiFi High Speed 50Mbps" data-price="75000" onchange="calculateTotal()" class="service-checkbox w-4 h-4 text-yellow-500 rounded focus:ring-yellow-400">
+            <span class="text-sm text-gray-700">WiFi Dedicated (Rp 75.000)</span>
+          </label>
         </div>
 
-        <!-- PRATINJAU INVOICE -->
-        <div class="bg-gray-200 p-4 rounded-xl flex justify-center items-start">
-            <div id="invoice-preview" class="bg-white w-full max-w-[210mm] p-8 rounded shadow-lg text-gray-800 space-y-6">
-                <!-- Header -->
-                <div class="flex justify-between items-center border-b pb-4">
-                    <div>
-                        <h1 class="text-2xl font-black text-gray-900">OFO KOST</h1>
-                        <p class="text-xs text-gray-500">Hunian Nyaman & Terjangkau</p>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-xs text-gray-400 block">INVOICE</span>
-                        <span class="text-sm font-bold text-gray-700" id="lblInvoiceNum">#INV-202610-001</span>
-                    </div>
-                </div>
+        <!-- Custom Services Rows -->
+        <div id="custom-services-container" class="space-y-2"></div>
 
-                <!-- Metadata -->
-                <div class="grid grid-cols-2 text-sm gap-4">
-                    <div>
-                        <span class="text-gray-500 block text-xs">Penyewa:</span>
-                        <strong id="lblCustomerName" class="text-gray-800">Ahmad Subagja</strong>
-                    </div>
-                    <div>
-                        <span class="text-gray-500 block text-xs">Periode Sewa:</span>
-                        <span id="lblPeriod" class="text-gray-800 font-medium">-</span>
-                    </div>
-                </div>
+        <button type="button" onclick="addCustomServiceRow()" class="text-sm font-semibold text-yellow-600 hover:text-yellow-700 flex items-center gap-1">
+          <i class="fa-solid fa-circle-plus"></i> Tambah Extra Service Kustom
+        </button>
+      </div>
 
-                <!-- Rincian Tabel -->
-                <table class="w-full text-left text-sm border-collapse">
-                    <thead>
-                        <tr class="border-b text-gray-500 text-xs uppercase">
-                            <th class="py-2">Deskripsi / Layanan</th>
-                            <th class="py-2 text-right">Biaya</th>
-                        </tr>
-                    </thead>
-                    <tbody id="invoice-items-body" class="divide-y">
-                        <!-- Item Kamar dan Service akan dirender di sini oleh JS -->
-                    </tbody>
-                    <tfoot>
-                        <tr class="border-t-2 border-gray-800 font-bold text-base">
-                            <td class="pt-4 text-gray-900">Total Pembayaran</td>
-                            <td class="pt-4 text-right text-gray-900" id="lblGrandTotal">Rp 0</td>
-                        </tr>
-                    </tfoot>
-                </table>
-
-                <div class="text-xs text-gray-400 border-t pt-4 text-center">
-                    Terima kasih telah memilih OFO KOST sebagai tempat tinggal Anda.
-                </div>
-            </div>
-        </div>
-
+      <!-- Tombol Cetak PDF -->
+      <button onclick="downloadPDF()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 rounded-lg transition shadow">
+        <i class="fa-solid fa-file-pdf mr-2"></i> Download Invoice PDF
+      </button>
     </div>
 
-    <script>
-        // Tambah baris input service manual
-        function addCustomServiceRow() {
-            const container = document.getElementById('custom-services-container');
-            const rowId = Date.now();
-            
-            const rowHtml = `
-                <div class="flex items-center gap-2" id="row-${rowId}">
-                    <input type="text" placeholder="Nama Layanan Tambahan" class="flex-1 text-sm p-2 border rounded outline-none custom-service-name" oninput="updatePreview()">
-                    <input type="number" placeholder="Harga (Rp)" class="w-32 text-sm p-2 border rounded outline-none custom-service-price" oninput="calculateTotal()">
-                    <button type="button" onclick="removeCustomServiceRow('${rowId}')" class="text-red-500 hover:text-red-700 p-2">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
-                </div>
-            `;
-            container.insertAdjacentHTML('beforeend', rowHtml);
-        }
-
-        function removeCustomServiceRow(row
+    <!-- PRATINJAU INVOICE -->
+    <div class="bg-gray-200 p-4 rounded-xl flex justify-center items-start">
+      <div id="invoice-preview" class="bg-white w-full max-w-[210mm] p-8 rounded shadow-lg text-gray-800 space-y-6">
+        <!--
