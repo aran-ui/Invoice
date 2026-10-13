@@ -134,9 +134,13 @@
             <h3 class="text-sm font-bold uppercase text-yellow-800 tracking-wider">Status & Pembayaran</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div class="md:col-span-2">
-                <label class="block text-xs font-semibold text-gray-700 mb-1">No. Invoice Manual (Opsional)</label>
-                <input type="text" id="inpManualInvNum" oninput="updatePreview()" class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:border-brand-black outline-none bg-white" placeholder="Contoh: INV-1200/OFO/1026 (Kosongkan jika otomatis)">
-                <p class="text-[9px] text-gray-500 mt-0.5 italic">Jika dikosongkan, nomor invoice akan dibuat secara otomatis.</p>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">No. Urut Invoice Manual (Opsional)</label>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs font-bold text-gray-600 bg-gray-200 px-2 py-2 rounded border border-gray-300">INV-</span>
+                  <input type="text" id="inpManualInvNum" oninput="updatePreview()" class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:border-brand-black outline-none bg-white font-bold" placeholder="1200">
+                  <span class="text-xs font-bold text-gray-600 bg-gray-200 px-2 py-2 rounded border border-gray-300" id="invSuffixPreview">/OFO/MMYY</span>
+                </div>
+                <p class="text-[9px] text-gray-500 mt-1 italic">Ketik angka nomor urut saja. Tanggal check-in akan otomatis dipasang di belakang.</p>
               </div>
               <div>
                 <label class="block text-xs font-semibold text-gray-700 mb-1">Nominal Dibayar (Real) *</label>
@@ -161,12 +165,14 @@
                   <option value="Tunai / Cash">Tunai / Cash</option>
                 </select>
               </div>
-              <div class="md:col-span-2 pt-3 mt-1 border-t border-yellow-200">
-                <label class="block text-xs font-semibold text-gray-700 mb-1 text-yellow-900">No. Referensi Invoice (Opsional, Khusus Pelunasan)</label>
-                <input type="text" id="inpCustomInv" oninput="updatePreview()" class="w-full px-3 py-2 text-sm rounded border border-yellow-300 focus:border-brand-black outline-none bg-yellow-50" placeholder="Contoh: INV-1200/OFO/0926">
-                <p class="text-[9px] text-gray-600 mt-1 italic">Ketik Nomor Invoice lama di sini saat mencetak kwitansi pelunasan, agar kwitansi terhubung ke tagihan tersebut.</p>
-              </div>
             </div>
+          </div>
+
+          <!-- Section Catatan Khusus (Note) -->
+          <div class="space-y-2 bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <label class="block text-xs font-bold uppercase text-gray-600 tracking-wider">Catatan Khusus / Note (Opsional)</label>
+            <input type="text" id="inpNote" oninput="updatePreview()" class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:border-brand-black outline-none bg-white" placeholder="Contoh: Tamu minta extra selimut saat check-in">
+            <p class="text-[9px] text-gray-500 italic">Catatan ini akan ditampilkan di Invoice preview di atas Kebijakan.</p>
           </div>
         </form>
       </div>
@@ -271,12 +277,23 @@
                   <span class="text-gray-500 font-medium">Telah Dibayar (Real)</span>
                   <span class="font-bold text-brand-black" id="outPaid">-</span>
                 </div>
+                <!-- Menampilkan Metode Pembayaran di Invoice -->
+                <div class="flex justify-between text-xs text-gray-600 border-t border-gray-100 pt-1.5">
+                  <span class="font-medium">Metode Pembayaran</span>
+                  <span class="font-bold text-brand-black" id="outMethod">-</span>
+                </div>
                 <div class="flex justify-between items-center py-4 px-4 bg-brand-black text-brand-yellow rounded-lg shadow-sm mt-4">
                   <span class="font-bold uppercase tracking-widest text-[10px] text-white">Sisa Tagihan</span>
                   <span id="outBalance" class="text-2xl font-black tracking-tight">-</span>
                 </div>
               </div>
             </div>
+          </div>
+
+          <!-- Baris Note / Catatan Khusus (Akan Sembunyi Jika Kosong) -->
+          <div id="containerOutNote" class="mt-6 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded-r text-xs text-gray-800 hidden">
+            <span class="font-bold text-yellow-900 uppercase tracking-wider block mb-0.5">Note:</span>
+            <p id="outNote" class="italic text-gray-700 font-medium leading-relaxed"></p>
           </div>
 
           <div class="mt-6 border-t border-gray-200 pt-4 text-[9px] leading-tight flex flex-col md:flex-row gap-4">
@@ -727,8 +744,8 @@
       const checkOut = document.getElementById('inpCheckOut').value;
       let payment = parseInt(document.getElementById('inpPayment').value) || 0;
       const method = document.getElementById('inpMethod').value;
-      const customInv = document.getElementById('inpCustomInv').value.trim();
-      const manualInvNum = document.getElementById('inpManualInvNum') ? document.getElementById('inpManualInvNum').value.trim() : '';
+      const manualInvNumInput = document.getElementById('inpManualInvNum') ? document.getElementById('inpManualInvNum').value.trim() : '';
+      const noteInput = document.getElementById('inpNote') ? document.getElementById('inpNote').value.trim() : '';
 
       let roomTotal = 0;
       let invoiceItemsHtml = '';
@@ -821,10 +838,17 @@
       const balance = grandTotal - payment;
       const dateStr = checkIn || new Date().toISOString().split('T')[0];
 
-      const autoInvoiceNum = generateDocString('INV', activeInvoiceBase, dateStr);
-      activeInvoiceNum = manualInvNum !== "" ? manualInvNum : autoInvoiceNum;
+      // Format Angka Invoice Semi-Otomatis (Format: INV-[NOMOR]/OFO/[MMYY Check-in])
+      const d = new Date(dateStr);
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yy = String(d.getFullYear()).slice(-2);
+      const dateSuffix = `${mm}${yy}`;
+
+      document.getElementById('invSuffixPreview').textContent = `/OFO/${dateSuffix}`;
+
+      const finalInvNumber = manualInvNumInput !== "" ? manualInvNumInput : activeInvoiceBase;
+      activeInvoiceNum = `INV-${finalInvNumber}/OFO/${dateSuffix}`;
       activeKwiNum = generateDocString('KWI', activeKwiBase, dateStr);
-      const displayRefInv = customInv !== "" ? customInv : activeInvoiceNum;
 
       document.getElementById('outInvNumber').textContent = activeInvoiceNum;
       document.getElementById('outDate').textContent = formatDate(new Date().toISOString().split('T')[0]);
@@ -850,16 +874,26 @@
       document.getElementById('invoice-items').innerHTML = invoiceItemsHtml;
       document.getElementById('outGrandTotal').textContent = `Rp ${formatRp(grandTotal)}`;
       document.getElementById('outPaid').textContent = `Rp ${formatRp(payment)}`;
+      document.getElementById('outMethod').textContent = method; // Tampilkan metode bayar di Invoice
       document.getElementById('outBalance').textContent = `Rp ${formatRp(balance < 0 ? 0 : balance)}`;
 
+      // Menampilkan baris Note jika diisi
+      const containerNote = document.getElementById('containerOutNote');
+      if (noteInput !== "") {
+        document.getElementById('outNote').textContent = noteInput;
+        containerNote.classList.remove('hidden');
+      } else {
+        containerNote.classList.add('hidden');
+      }
+
       document.getElementById('kwiNumber').textContent = activeKwiNum;
-      document.getElementById('kwiRef').textContent = displayRefInv;
+      document.getElementById('kwiRef').textContent = activeInvoiceNum;
       document.getElementById('kwiName').textContent = name;
       document.getElementById('kwiTotal').textContent = formatRp(payment);
       document.getElementById('kwiDate').textContent = formatDate(new Date().toISOString().split('T')[0]);
       document.getElementById('kwiMethod').textContent = method;
 
-      let desc = `Pembayaran ${status === 'DP' ? 'DP' : 'Pelunasan'} Sewa ${roomSummaryDesc.join(", ")}. (Ref: ${displayRefInv})`;
+      let desc = `Pembayaran ${status === 'DP' ? 'DP' : 'Pelunasan'} Sewa ${roomSummaryDesc.join(", ")}. (Ref: ${activeInvoiceNum})`;
       if (extraTotal > 0) desc += ` Termasuk biaya layanan tambahan.`;
       document.getElementById('kwiDesc').textContent = desc;
       document.getElementById('kwiTerbilang').textContent = terbilang(payment) + " Rupiah";
