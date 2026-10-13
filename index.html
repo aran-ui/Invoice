@@ -1441,69 +1441,13 @@
                     } else {
                         throw new Error(result.message || 'Gagal menyimpan data ke Spreadsheet.');
                     }
-  async function saveToSheets() {
-  const name = document.getElementById('inpName').value.trim();
-  const phone = document.getElementById('inpPhone').value.trim();
-
-  // Validasi Nama
+async function saveToSheets() {
+  const name = document.getElementById('inpName').value;
   if(!name) {
     showNotification("Perhatian", "Nama tamu wajib diisi sebelum menyimpan data!", "warning");
-    document.getElementById('inpName').focus();
     return;
-  }
-
-  // Validasi WhatsApp
-  if(!phone) {
-    showNotification("Perhatian", "No. WhatsApp wajib diisi sebelum menyimpan data!", "warning");
-    document.getElementById('inpPhone').focus();
-    return;
-  }
-
-  const payload = {
-    "NAME": name,
-    "PHONE": phone,
-    // ... masukan data payload lainnya di sini ...
-  };
-
-  // Mengubah status tombol saat loading
-  const btn = document.querySelector('button[onclick="saveToSheets()"]');
-  const originalText = btn.innerHTML;
-  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-brand-yellow"></i> Menyimpan...';
-  btn.disabled = true;
-
-  try {
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbyfsfcNt5WYN0fso1YIvvIlPs2bNi4Kn4yP4xzr5ZO12kePv-GX-loAxjehtKe67m9j/exec';
-    
-    if (scriptURL === 'ISI_DENGAN_URL_WEB_APP_ANDA_DISINI') {
-      console.log("Data Payload:", payload);
-      showNotification("Mode Simulasi", `Anda belum memasukkan URL Google Script. Data atas nama ${payload.NAME} dengan total Rp ${formatRp(payload["Total Price"])} akan dikirim ke Sheets jika URL sudah dipasang.`, "warning");
-      activeInvoiceBase++;
-      updatePreview();
-    } else {
-      const response = await fetch(scriptURL, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-      });
-      const result = await response.json();
-      if (result.result === "success") {
-        showNotification("Berhasil!", `Data berhasil disimpan ke Google Sheets! \n Nomor Invoice Anda saat ini adalah: ${activeInvoiceNum}`, "success");
-        activeInvoiceBase++;
-        activeKwiBase++;
-        localStorage.setItem('ofo_kwi_base', activeKwiBase);
-        updatePreview();
-      } else {
-        throw new Error(result.message || 'Gagal menyimpan data ke Spreadsheet.');
-      }
-    }
-  } catch (error) {
-    showNotification("Gagal!", error.message, "danger");
-  } finally {
-    btn.innerHTML = originalText;
-    btn.disabled = false;
-  }
-}
-        function downloadPDF() {
+  }       
+    function downloadPDF() {
             const element = document.getElementById('document-preview-container');
             const prefix = currentTab === 'invoice' ? 'INV' : 'KWI';
             const guest = document.getElementById('inpName').value.replace(/\s+/g, '_') || 'Tamu';
