@@ -510,9 +510,17 @@
             <label class="block text-[10px] font-semibold text-gray-600 mb-0.5">Jumlah Kamar *</label>
             <input type="number" class="rm-qty w-full px-2 py-1.5 text-xs rounded border border-gray-300 outline-none font-bold text-center" value="1" min="1" oninput="updatePreview()">
           </div>
-          <div>
-            <label class="block text-[10px] font-semibold text-gray-600 mb-0.5">Durasi (Hari/Malam) *</label>
+          <div class="container-dur-num">
+            <label class="block text-[10px] font-semibold text-gray-600 mb-0.5">Durasi (Malam) *</label>
             <input type="number" class="rm-duration w-full px-2 py-1.5 text-xs rounded border border-gray-300 outline-none font-bold text-center" value="1" min="1" oninput="updatePreview()">
+          </div>
+          <div class="container-dur-kost hidden">
+            <label class="block text-[10px] font-semibold text-gray-600 mb-0.5">Paket Kost *</label>
+            <select class="rm-kost-dur w-full px-2 py-1.5 text-xs rounded border border-gray-300 bg-white outline-none" onchange="updatePreview()">
+              <option value="1 Minggu">1 Minggu</option>
+              <option value="2 Minggu">2 Minggu</option>
+              <option value="1 Bulan">1 Bulan</option>
+            </select>
           </div>
           <div>
             <label class="block text-[10px] font-semibold text-gray-600 mb-0.5">Tarif / Kamar *</label>
@@ -551,6 +559,21 @@
           typeSelect.appendChild(opt);
         });
       }
+
+      const durNumDiv = item.querySelector('.container-dur-num');
+      const durKostDiv = item.querySelector('.container-dur-kost');
+
+      if (service === 'Kost') {
+        durNumDiv.classList.add('hidden');
+        durKostDiv.classList.remove('hidden');
+      } else if (service === 'Longstay') {
+        durNumDiv.classList.remove('hidden');
+        durKostDiv.classList.add('hidden');
+      } else {
+        durNumDiv.classList.remove('hidden');
+        durKostDiv.classList.add('hidden');
+      }
+
       handleRoomTypeChange(id);
     }
 
@@ -575,8 +598,6 @@
       const method = document.getElementById('inpMethod').value;
       const customInv = document.getElementById('inpCustomInv').value.trim();
 
-      const calcDays = calcNights(checkIn, checkOut);
-
       let roomTotal = 0;
       let invoiceItemsHtml = '';
       let roomSummaryDesc = [];
@@ -585,19 +606,34 @@
         const service = item.querySelector('.rm-service').value;
         const roomType = item.querySelector('.rm-type').value;
         const qty = parseInt(item.querySelector('.rm-qty').value) || 1;
-        const dur = parseInt(item.querySelector('.rm-duration').value) || 1;
         const rate = parseInt(item.querySelector('.rm-price').value) || 0;
 
-        let subTotal = rate * dur * qty;
-        roomTotal += subTotal;
+        let subTotal = 0;
+        let qtyDurText = "";
 
-        let unitLabel = service === 'Kost' ? 'Bulan/Minggu' : 'Malam';
-        roomSummaryDesc.push(`${service} (${roomType}) ${qty} kamar x ${dur} ${unitLabel}`);
+        if (service === 'Hotel') {
+          const dur = parseInt(item.querySelector('.rm-duration').value) || 1;
+          subTotal = rate * dur * qty;
+          qtyDurText = `${qty} Kamar / ${dur} Malam`;
+          roomSummaryDesc.push(`${service} (${roomType}) ${qty} kamar x ${dur} malam`);
+        } else if (service === 'Longstay') {
+          const dur = parseInt(item.querySelector('.rm-duration').value) || 1;
+          subTotal = rate * qty; // Longstay tidak dikalikan durasi
+          qtyDurText = `${qty} Kamar / ${dur} Malam`;
+          roomSummaryDesc.push(`${service} (${roomType}) ${qty} kamar`);
+        } else if (service === 'Kost') {
+          const kostDur = item.querySelector('.rm-kost-dur').value;
+          subTotal = rate * qty; // Kost tidak dikalikan durasi
+          qtyDurText = `${qty} Kamar / ${kostDur}`;
+          roomSummaryDesc.push(`${service} (${roomType}) ${qty} kamar (${kostDur})`);
+        }
+
+        roomTotal += subTotal;
 
         invoiceItemsHtml += `
           <tr class="border-b border-gray-100">
             <td class="py-2 px-2 font-medium text-gray-800">${service} - ${roomType}</td>
-            <td class="py-2 px-2 text-center text-gray-700">${qty} Kamar / ${dur} ${unitLabel}</td>
+            <td class="py-2 px-2 text-center text-gray-700">${qtyDurText}</td>
             <td class="py-2 px-2 text-right text-gray-700">${formatRp(rate)}</td>
             <td class="py-2 px-2 text-right font-medium text-brand-black">${formatRp(subTotal)}</td>
           </tr>
@@ -786,12 +822,27 @@
         const service = item.querySelector('.rm-service').value;
         const roomType = item.querySelector('.rm-type').value;
         const qty = parseInt(item.querySelector('.rm-qty').value) || 1;
-        const dur = parseInt(item.querySelector('.rm-duration').value) || 1;
         const rate = parseInt(item.querySelector('.rm-price').value) || 0;
 
-        totalRoomPrice += rate * dur * qty;
-        let unitLabel = service === 'Kost' ? 'Bulan/Minggu' : 'Malam';
-        roomServices.push(`${service} - ${roomType} (${qty} Kamar x ${dur} ${unitLabel})`);
+        let subTotal = 0;
+        let qtyDurText = "";
+
+        if (service === 'Hotel') {
+          const dur = parseInt(item.querySelector('.rm-duration').value) || 1;
+          subTotal = rate * dur * qty;
+          qtyDurText = `${qty} Kamar x ${dur} Malam`;
+        } else if (service === 'Longstay') {
+          const dur = parseInt(item.querySelector('.rm-duration').value) || 1;
+          subTotal = rate * qty;
+          qtyDurText = `${qty} Kamar (${dur} Malam)`;
+        } else if (service === 'Kost') {
+          const kostDur = item.querySelector('.rm-kost-dur').value;
+          subTotal = rate * qty;
+          qtyDurText = `${qty} Kamar (${kostDur})`;
+        }
+
+        totalRoomPrice += subTotal;
+        roomServices.push(`${service} - ${roomType} (${qtyDurText})`);
         roomQtyList.push(qty);
       });
 
