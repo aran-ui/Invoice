@@ -101,7 +101,7 @@
               </button>
             </div>
 
-            <!-- Tanggal Inap Informasi Invoice (Di Atas Kamar) -->
+            <!-- Tanggal Inap Informasi Invoice -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pb-3 border-b border-gray-200">
               <div>
                 <label class="block text-xs font-semibold text-gray-700 mb-1">Tgl Check-in *</label>
@@ -117,6 +117,7 @@
             <div id="roomItemsList" class="space-y-3"></div>
           </div>
 
+          <!-- Extra Service Section -->
           <div id="extraServiceSection" class="space-y-4 bg-blue-50 p-4 rounded-lg border border-blue-100">
             <div class="flex justify-between items-center">
               <h3 class="text-sm font-bold uppercase text-blue-800 tracking-wider">Extra Service</h3>
@@ -128,6 +129,7 @@
             <p id="noExtraMsg" class="text-xs text-gray-500 italic">Belum ada layanan tambahan.</p>
           </div>
 
+          <!-- Status & Pembayaran -->
           <div class="space-y-4 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
             <h3 class="text-sm font-bold uppercase text-yellow-800 tracking-wider">Status & Pembayaran</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -406,16 +408,18 @@
       'Kost Private': 3000000
     };
 
-    let extraServiceConfig = {
-      'Early check in': { rate: 20000, label: 'Jam' },
-      'Late Check out': { rate: 20000, label: 'Jam' },
-      'Extra Bed': { rate: 100000, label: 'Malam' },
-      'Bantal': { rate: 50000, label: 'Malam' },
-      'Selimut': { rate: 100000, label: 'Malam' },
-      'Handuk': { rate: 10000, label: 'Malam' },
-      'Breakfast': { rate: 20000, label: 'Pax/Malam' },
-      'Lainnya': { rate: 0, label: 'Custom' }
-    };
+    let extraServiceOptions = [
+      'Amunitas',
+      'Handuk',
+      'Bantal',
+      'Selimut',
+      'Matras',
+      'Extra Bed',
+      'Late Check out',
+      'Early Check in',
+      'Laundry',
+      'Lainnya'
+    ];
 
     let activeInvoiceBase = 1200;
     let activeKwiBase = parseInt(localStorage.getItem('ofo_kwi_base')) || 5000;
@@ -585,6 +589,121 @@
       updatePreview();
     }
 
+    function addExtraService() {
+      extraCounter++;
+      const id = `extra-${extraCounter}`;
+      const list = document.getElementById('extraServicesList');
+      document.getElementById('noExtraMsg').style.display = 'none';
+
+      let options = '';
+      extraServiceOptions.forEach(opt => {
+        options += `<option value="${opt}">${opt}</option>`;
+      });
+
+      const div = document.createElement('div');
+      div.className = 'extra-item flex flex-col md:flex-row gap-2 bg-white p-3 border border-blue-200 rounded relative items-start md:items-center shadow-sm';
+      div.id = id;
+      div.innerHTML = `
+        <div class="flex-1 w-full">
+          <label class="block text-[10px] font-semibold text-gray-600 mb-0.5">Layanan *</label>
+          <select class="ex-type w-full text-xs p-1.5 border border-gray-300 rounded bg-white outline-none" onchange="handleExtraTypeChange('${id}')">${options}</select>
+          <div class="custom-fields hidden mt-1">
+            <input type="text" class="ex-custom-name w-full text-xs p-1.5 border border-gray-300 rounded mb-1" placeholder="Nama Layanan Lainnya" oninput="updatePreview()">
+          </div>
+        </div>
+
+        <!-- Container Durasi Tambahan -->
+        <div class="ex-dur-container w-full md:w-28">
+          <label class="block text-[10px] font-semibold text-gray-600 mb-0.5 ex-dur-label">Durasi</label>
+
+          <!-- Input Durasi Pilihan (Handuk, Bantal, Selimut, Matras, Extra Bed) -->
+          <select class="ex-dur-select w-full text-xs p-1.5 border border-gray-300 rounded bg-white outline-none" onchange="updatePreview()">
+            <option value="1 Hari" data-val="1">1 Hari</option>
+            <option value="1 Minggu" data-val="1">1 Minggu</option>
+            <option value="2 Minggu" data-val="1">2 Minggu</option>
+            <option value="1 Bulan" data-val="1">1 Bulan</option>
+          </select>
+
+          <!-- Input Durasi Jam Manual (Early Check in / Late Check out) -->
+          <input type="number" class="ex-dur-manual w-full text-xs p-1.5 border border-gray-300 rounded font-bold text-center hidden" value="1" min="1" placeholder="Jam" oninput="updatePreview()">
+
+          <!-- Input Pilihan Laundry (Cuci setrika, Cuci kering, Setrika) -->
+          <select class="ex-laundry-type w-full text-xs p-1.5 border border-gray-300 rounded bg-white outline-none hidden" onchange="updatePreview()">
+            <option value="Cuci setrika">Cuci setrika</option>
+            <option value="Cuci kering">Cuci kering</option>
+            <option value="Setrika">Setrika</option>
+          </select>
+        </div>
+
+        <div class="w-full md:w-20">
+          <label class="block text-[10px] font-semibold text-gray-600 mb-0.5 ex-qty-label">Qty *</label>
+          <input type="number" class="ex-qty w-full text-xs p-1.5 border border-gray-300 rounded font-bold text-center" value="1" min="1" oninput="updatePreview()">
+        </div>
+
+        <div class="w-full md:w-32">
+          <label class="block text-[10px] font-semibold text-gray-600 mb-0.5">Tarif / Satuan *</label>
+          <div class="relative">
+            <span class="absolute left-2 top-1.5 text-xs text-gray-500 font-bold">Rp</span>
+            <input type="number" class="ex-rate w-full pl-7 pr-2 py-1.5 text-xs rounded border border-gray-300 font-bold outline-none" placeholder="0" oninput="updatePreview()">
+          </div>
+        </div>
+
+        <button type="button" onclick="removeExtraService('${id}')" class="text-red-500 hover:text-red-700 p-1 w-full md:w-auto text-right md:text-left mt-2 md:mt-0"><i class="fa-solid fa-trash"></i></button>
+      `;
+      list.appendChild(div);
+      handleExtraTypeChange(id);
+    }
+
+    function handleExtraTypeChange(id) {
+      const item = document.getElementById(id);
+      const type = item.querySelector('.ex-type').value;
+
+      const durContainer = item.querySelector('.ex-dur-container');
+      const durLabel = item.querySelector('.ex-dur-label');
+      const qtyLabel = item.querySelector('.ex-qty-label');
+
+      const durSelect = item.querySelector('.ex-dur-select');
+      const durManual = item.querySelector('.ex-dur-manual');
+      const laundryType = item.querySelector('.ex-laundry-type');
+      const customFields = item.querySelector('.custom-fields');
+
+      // Reset semua elemen dinamis
+      durContainer.classList.remove('hidden');
+      durSelect.classList.add('hidden');
+      durManual.classList.add('hidden');
+      laundryType.classList.add('hidden');
+      customFields.classList.add('hidden');
+      qtyLabel.textContent = "Qty *";
+
+      if (type === 'Amunitas') {
+        durContainer.classList.add('hidden');
+        qtyLabel.textContent = "Pax *";
+      } else if (['Handuk', 'Bantal', 'Selimut', 'Matras', 'Extra Bed'].includes(type)) {
+        durSelect.classList.remove('hidden');
+        durLabel.textContent = "Durasi *";
+      } else if (['Early Check in', 'Late Check out'].includes(type)) {
+        durManual.classList.remove('hidden');
+        durLabel.textContent = "Durasi (Jam) *";
+      } else if (type === 'Laundry') {
+        laundryType.classList.remove('hidden');
+        durLabel.textContent = "Jenis Laundry *";
+      } else if (type === 'Lainnya') {
+        customFields.classList.remove('hidden');
+        durSelect.classList.remove('hidden');
+        durLabel.textContent = "Durasi / Ket *";
+      }
+
+      updatePreview();
+    }
+
+    function removeExtraService(id) {
+      document.getElementById(id).remove();
+      if(document.querySelectorAll('.extra-item').length === 0) {
+        document.getElementById('noExtraMsg').style.display = 'block';
+      }
+      updatePreview();
+    }
+
     function updatePreview() {
       const name = document.getElementById('inpName').value || 'Nama Tamu';
       const phone = document.getElementById('inpPhone').value || '-';
@@ -615,12 +734,12 @@
           roomSummaryDesc.push(`${service} (${roomType}) ${qty} kamar x ${dur} malam`);
         } else if (service === 'Longstay') {
           const dur = parseInt(item.querySelector('.rm-duration').value) || 1;
-          subTotal = rate * qty; // Longstay tidak dikalikan durasi
+          subTotal = rate * qty;
           qtyDurText = `${qty} Kamar / ${dur} Malam`;
           roomSummaryDesc.push(`${service} (${roomType}) ${qty} kamar`);
         } else if (service === 'Kost') {
           const kostDur = item.querySelector('.rm-kost-dur').value;
-          subTotal = rate * qty; // Kost tidak dikalikan durasi
+          subTotal = rate * qty;
           qtyDurText = `${qty} Kamar / ${kostDur}`;
           roomSummaryDesc.push(`${service} (${roomType}) ${qty} kamar (${kostDur})`);
         }
@@ -641,16 +760,35 @@
       document.querySelectorAll('.extra-item').forEach(item => {
         const type = item.querySelector('.ex-type').value;
         const customName = item.querySelector('.ex-custom-name') ? item.querySelector('.ex-custom-name').value : '';
-        const rate = parseInt(type === 'Lainnya' ? item.querySelector('.ex-custom-rate').value : item.querySelector('.ex-rate').value) || 0;
+        const rate = parseInt(item.querySelector('.ex-rate').value) || 0;
         const qty = parseInt(item.querySelector('.ex-qty').value) || 1;
-        const dur = parseInt(item.querySelector('.ex-dur').value) || 1;
-        const subTotal = rate * qty * dur;
+
+        let subTotal = rate * qty;
+        let itemLabel = type === 'Lainnya' ? (customName || 'Lainnya') : type;
+        let qtyDurDisplay = `${qty} Pax`;
+
+        if (type === 'Amunitas') {
+          qtyDurDisplay = `${qty} Pax`;
+        } else if (['Handuk', 'Bantal', 'Selimut', 'Matras', 'Extra Bed'].includes(type)) {
+          const durSel = item.querySelector('.ex-dur-select').value;
+          qtyDurDisplay = `${qty} Pcs / ${durSel}`;
+        } else if (['Early Check in', 'Late Check out'].includes(type)) {
+          const durJam = parseInt(item.querySelector('.ex-dur-manual').value) || 1;
+          qtyDurDisplay = `${qty} Kamar / ${durJam} Jam`;
+        } else if (type === 'Laundry') {
+          const lType = item.querySelector('.ex-laundry-type').value;
+          qtyDurDisplay = `${qty} Qty (${lType})`;
+        } else if (type === 'Lainnya') {
+          const durSel = item.querySelector('.ex-dur-select').value;
+          qtyDurDisplay = `${qty} / ${durSel}`;
+        }
+
         extraTotal += subTotal;
-        let itemName = type === 'Lainnya' ? (customName || 'Custom Service') : type;
+
         invoiceItemsHtml += `
           <tr class="border-b border-gray-100">
-            <td class="py-2 px-2 text-gray-700">${itemName}</td>
-            <td class="py-2 px-2 text-center text-gray-700">${qty}x / ${dur}</td>
+            <td class="py-2 px-2 text-gray-700">${itemLabel}</td>
+            <td class="py-2 px-2 text-center text-gray-700">${qtyDurDisplay}</td>
             <td class="py-2 px-2 text-right text-gray-700">${formatRp(rate)}</td>
             <td class="py-2 px-2 text-right font-medium text-brand-black">${formatRp(subTotal)}</td>
           </tr>
@@ -728,71 +866,6 @@
       addRoomItem();
     }
 
-    function addExtraService() {
-      extraCounter++;
-      const id = `extra-${extraCounter}`;
-      const list = document.getElementById('extraServicesList');
-      document.getElementById('noExtraMsg').style.display = 'none';
-      let options = '';
-      for(let key in extraServiceConfig) { options += `<option value="${key}">${key}</option>`; }
-      const div = document.createElement('div');
-      div.className = 'extra-item flex flex-col md:flex-row gap-2 bg-white p-2 border border-blue-200 rounded relative items-start md:items-center';
-      div.id = id;
-      div.innerHTML = `
-        <div class="flex-1 w-full">
-          <label class="block text-[10px] text-gray-500 mb-0.5">Layanan</label>
-          <select class="ex-type w-full text-xs p-1 border rounded" onchange="handleExtraTypeChange('${id}')">${options}</select>
-          <div class="custom-fields hidden mt-1">
-            <input type="text" class="ex-custom-name w-full text-xs p-1 border rounded mb-1" placeholder="Nama Layanan">
-            <input type="number" class="ex-custom-rate w-full text-xs p-1 border rounded" placeholder="Tarif Custom" oninput="updatePreview()">
-          </div>
-        </div>
-        <div class="w-full md:w-24">
-          <label class="block text-[10px] text-gray-500 mb-0.5">Tarif (<span class="ex-label">Jam</span>)</label>
-          <input type="number" class="ex-rate w-full text-xs p-1 border rounded bg-gray-50" readonly value="${extraServiceConfig['Early check in'].rate}">
-        </div>
-        <div class="w-full md:w-16">
-          <label class="block text-[10px] text-gray-500 mb-0.5">Durasi</label>
-          <input type="number" class="ex-dur w-full text-xs p-1 border rounded" value="1" min="1" oninput="updatePreview()">
-        </div>
-        <div class="w-full md:w-16">
-          <label class="block text-[10px] text-gray-500 mb-0.5">Qty</label>
-          <input type="number" class="ex-qty w-full text-xs p-1 border rounded" value="1" min="1" oninput="updatePreview()">
-        </div>
-        <button type="button" onclick="removeExtraService('${id}')" class="text-red-500 hover:text-red-700 p-1 w-full md:w-auto text-right md:text-left mt-2 md:mt-0"><i class="fa-solid fa-trash"></i></button>
-      `;
-      list.appendChild(div);
-      handleExtraTypeChange(id);
-      updatePreview();
-    }
-
-    function handleExtraTypeChange(id) {
-      const container = document.getElementById(id);
-      const type = container.querySelector('.ex-type').value;
-      const rateInput = container.querySelector('.ex-rate');
-      const labelSpan = container.querySelector('.ex-label');
-      const customFields = container.querySelector('.custom-fields');
-      const config = extraServiceConfig[type];
-      rateInput.value = config.rate;
-      labelSpan.textContent = config.label;
-      if(type === 'Lainnya') {
-        customFields.classList.remove('hidden');
-        rateInput.closest('div').classList.add('hidden');
-      } else {
-        customFields.classList.add('hidden');
-        rateInput.closest('div').classList.remove('hidden');
-      }
-      updatePreview();
-    }
-
-    function removeExtraService(id) {
-      document.getElementById(id).remove();
-      if(document.querySelectorAll('.extra-item').length === 0) {
-        document.getElementById('noExtraMsg').style.display = 'block';
-      }
-      updatePreview();
-    }
-
     async function saveToSheets() {
       const name = document.getElementById('inpName').value.trim();
       const phone = document.getElementById('inpPhone').value.trim();
@@ -847,14 +920,25 @@
 
       document.querySelectorAll('.extra-item').forEach(item => {
         const type = item.querySelector('.ex-type').value;
-        let itemName = type === 'Lainnya' ? (item.querySelector('.ex-custom-name').value || 'Custom') : type;
-        let rate = type === 'Lainnya' ? (parseInt(item.querySelector('.ex-custom-rate').value) || 0) : (parseInt(item.querySelector('.ex-rate').value) || 0);
+        let itemName = type === 'Lainnya' ? (item.querySelector('.ex-custom-name').value || 'Lainnya') : type;
+        let rate = parseInt(item.querySelector('.ex-rate').value) || 0;
         const qty = parseInt(item.querySelector('.ex-qty').value) || 1;
-        const dur = parseInt(item.querySelector('.ex-dur').value) || 1;
-        totalExtraPrice += qty * dur * rate;
+
+        let durVal = "-";
+        if (['Handuk', 'Bantal', 'Selimut', 'Matras', 'Extra Bed'].includes(type)) {
+          durVal = item.querySelector('.ex-dur-select').value;
+        } else if (['Early Check in', 'Late Check out'].includes(type)) {
+          durVal = `${item.querySelector('.ex-dur-manual').value || 1} Jam`;
+        } else if (type === 'Laundry') {
+          durVal = item.querySelector('.ex-laundry-type').value;
+        } else if (type === 'Lainnya') {
+          durVal = item.querySelector('.ex-dur-select').value;
+        }
+
+        totalExtraPrice += rate * qty;
         extraServiceNames.push(itemName);
         extraServicePrices.push(rate);
-        extraServiceDurs.push(dur);
+        extraServiceDurs.push(durVal);
         extraServiceQtys.push(qty);
       });
 
@@ -873,7 +957,7 @@
         "Total Room Price": totalRoomPrice,
         "EXTRA SERVICE": extraServiceNames.join(", ") || "-",
         "Extra service Price": extraServicePrices.join(", ") || "0",
-        "Extra Duration": extraServiceDurs.join(", ") || "0",
+        "Extra Duration": extraServiceDurs.join(", ") || "-",
         "Extra QTY": extraServiceQtys.join(", ") || "0",
         "Total extra price": totalExtraPrice,
         "Total Price": totalRoomPrice + totalExtraPrice
