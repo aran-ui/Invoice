@@ -7,7 +7,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -30,25 +29,36 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
     body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; min-height: 100vh; }
-    .paper { width: 100%; max-width: 21cm; min-height: 29.7cm; padding: 2cm; margin: 0 auto; background: white; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
     
-    /* CSS Khusus Cetak & Download PDF */
+    /* Format Kertas A4 Presisi */
+    .paper-page { 
+      width: 21cm; 
+      min-height: 29.7cm; 
+      padding: 1.5cm; 
+      margin: 0 auto 2cm auto; 
+      background: white; 
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); 
+      box-sizing: border-box; 
+      position: relative;
+    }
+    
+    /* CSS Khusus Cetak & PDF */
     @media print {
+      body { background: white !important; }
       body * { visibility: hidden; }
-      #document-preview-container, #document-preview-container * { visibility: visible; }
-      #document-preview-container { 
+      #pdf-render-area, #pdf-render-area * { visibility: visible; }
+      #pdf-render-area { 
         position: absolute; 
         left: 0; 
         top: 0; 
-        width: 100% !important; 
+        width: 21cm !important; 
         margin: 0 !important; 
-        padding: 1.5cm !important; 
         box-shadow: none !important; 
         -webkit-print-color-adjust: exact !important; 
         print-color-adjust: exact !important; 
       }
+      .paper-page { margin: 0 !important; box-shadow: none !important; page-break-after: always; }
       .no-print { display: none !important; }
-      .page-break { page-break-before: always; margin-top: 2cm; }
     }
   </style>
 </head>
@@ -65,14 +75,8 @@
       </div>
       <div class="flex items-center gap-2 md:gap-4 text-sm">
         <span class="hidden md:inline text-gray-300"><i class="fa-solid fa-user-circle mr-1 text-brand-yellow"></i> Staff Area</span>
-        <button id="navDashboardBtn" onclick="toggleDashboard()" class="border border-gray-600 hover:border-brand-yellow hover:text-brand-yellow px-3 md:px-4 py-2 rounded transition text-xs md:text-sm">
-          <i class="fa-solid fa-chart-line mr-1"></i> Dashboard
-        </button>
-        <button onclick="checkAuthAndOpenSettings()" class="border border-gray-600 hover:border-brand-yellow hover:text-brand-yellow px-3 md:px-4 py-2 rounded transition text-xs md:text-sm">
-          <i class="fa-solid fa-gear mr-1"></i> Harga
-        </button>
         <button onclick="resetForm()" class="border border-gray-600 hover:border-brand-yellow hover:text-brand-yellow px-3 md:px-4 py-2 rounded transition text-xs md:text-sm">
-          <i class="fa-solid fa-rotate-right mr-1"></i> Reset
+          <i class="fa-solid fa-rotate-right mr-1"></i> Reset Form
         </button>
       </div>
     </div>
@@ -114,7 +118,6 @@
               </button>
             </div>
 
-            <!-- Tanggal Inap Informasi Invoice -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pb-3 border-b border-gray-200">
               <div>
                 <label class="block text-xs font-semibold text-gray-700 mb-1">Tgl Check-in / Mulai</label>
@@ -126,7 +129,6 @@
               </div>
             </div>
 
-            <!-- List Kamar Dinamis -->
             <div id="roomItemsList" class="space-y-3"></div>
             <p id="noRoomMsg" class="text-xs text-gray-500 italic hidden">Tidak ada kamar yang disewa.</p>
           </div>
@@ -154,7 +156,6 @@
                   <input type="text" id="inpManualInvNum" oninput="updatePreview()" class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:border-brand-black outline-none bg-white font-bold" placeholder="1200">
                   <span class="text-xs font-bold text-gray-600 bg-gray-200 px-2 py-2 rounded border border-gray-300" id="invSuffixPreview">/OFO/MMYY</span>
                 </div>
-                <p class="text-[9px] text-gray-500 mt-1 italic">Ketik angka nomor urut saja. Tanggal otomatis terpasang di belakang.</p>
               </div>
               <div>
                 <label class="block text-xs font-semibold text-gray-700 mb-1">Nominal Dibayar (Real) *</label>
@@ -164,7 +165,7 @@
                 </div>
               </div>
               <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Status Pembayaran (Otomatis)</label>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Status Pembayaran</label>
                 <select id="inpStatus" disabled class="w-full px-3 py-2 text-sm rounded border border-gray-300 bg-gray-100 text-gray-500 font-bold outline-none cursor-not-allowed">
                   <option value="PAID">LUNAS (Paid)</option>
                   <option value="DP">DP (Sebagian)</option>
@@ -182,11 +183,10 @@
             </div>
           </div>
 
-          <!-- Section Catatan Khusus (Note) -->
+          <!-- Section Catatan Khusus -->
           <div class="space-y-2 bg-gray-50 p-4 rounded-lg border border-gray-200">
             <label class="block text-xs font-bold uppercase text-gray-600 tracking-wider">Catatan Khusus / Note (Opsional)</label>
             <input type="text" id="inpNote" oninput="updatePreview()" class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:border-brand-black outline-none bg-white" placeholder="Contoh: Sewa extra bed tanpa sewa kamar">
-            <p class="text-[9px] text-gray-500 italic">Catatan ini akan ditampilkan di Invoice preview di atas Kebijakan.</p>
           </div>
         </form>
       </div>
@@ -198,160 +198,167 @@
       </div>
     </div>
 
-    <!-- Right Panel: Combined Visual Preview -->
-    <div class="flex-1 bg-gray-200 p-4 md:p-10 flex flex-col items-center">
-      <div class="w-full max-w-[21cm] bg-white rounded-t shadow-sm border-b p-3 flex justify-between items-center gap-3 no-print sticky top-0 z-10">
+    <!-- Right Panel: Visual Preview Area -->
+    <div class="flex-1 bg-gray-200 p-4 md:p-10 flex flex-col items-center overflow-y-auto">
+      <div class="w-full max-w-[21cm] bg-white rounded-t shadow-sm border-b p-3 flex flex-wrap justify-between items-center gap-3 no-print sticky top-0 z-10">
         <div class="flex items-center gap-2 text-brand-black font-bold text-sm">
-          <i class="fa-solid fa-file-invoice text-brand-yellow"></i> Live Preview Dokumen
+          <i class="fa-solid fa-file-invoice text-brand-yellow"></i> Preview Dokumen
         </div>
-        <div class="flex gap-2">
-          <button onclick="window.print()" class="px-3 py-1.5 text-sm border border-gray-300 bg-white rounded hover:bg-gray-50 flex items-center gap-1 shadow-sm font-semibold">
+        <div class="flex items-center gap-2">
+          <button onclick="window.print()" class="px-3 py-1.5 text-xs md:text-sm border border-gray-300 bg-white rounded hover:bg-gray-50 flex items-center gap-1 shadow-sm font-semibold">
             <i class="fa-solid fa-print"></i> Print
           </button>
-          <button onclick="downloadPDF()" class="px-3 py-1.5 text-sm bg-brand-yellow text-brand-black font-bold rounded hover:bg-yellow-500 flex items-center gap-1 shadow-sm">
-            <i class="fa-solid fa-download"></i> Download PDF
-          </button>
+          
+          <!-- Dropdown Option Download PDF -->
+          <div class="relative inline-block text-left">
+            <select id="pdfDownloadOption" onchange="triggerPdfDownload(this.value)" class="px-3 py-1.5 text-xs md:text-sm bg-brand-yellow text-brand-black font-bold rounded shadow-sm outline-none cursor-pointer hover:bg-yellow-500 border border-yellow-400">
+              <option value="" disabled selected>📥 Download PDF ...</option>
+              <option value="all">Satu File (Invoice + Kwitansi)</option>
+              <option value="page1">Lembar 1 Saja (Invoice)</option>
+              <option value="page2" id="optPage2">Lembar 2 Saja (Kwitansi)</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      <div id="document-preview-container" class="paper relative flex flex-col gap-12">
-        <!-- LEMBAR INVOICE -->
-        <div id="view-invoice" class="relative">
+      <!-- PDF Render Area -->
+      <div id="pdf-render-area" class="w-full flex flex-col items-center">
+        <!-- HALAMAN 1: INVOICE -->
+        <div id="page-invoice" class="paper-page">
           <div class="absolute top-0 left-0 w-full h-2 bg-brand-yellow"></div>
-          <div class="flex justify-between items-start pb-8 mb-8 border-b border-gray-200 mt-4">
+          <div class="flex justify-between items-start pb-6 mb-6 border-b border-gray-200 mt-2">
             <div>
-              <div class="mb-4 w-32 h-12">
+              <div class="mb-3 w-32 h-12">
                 <img src="OFO.png" alt="OFO Kost Premium" class="w-full h-full object-contain object-left">
               </div>
               <div class="text-[11px] text-gray-500 leading-relaxed">
-                <p class="font-bold text-brand-black uppercase tracking-wider mb-1">OFO KOST MANAGEMENT</p>
+                <p class="font-bold text-brand-black uppercase tracking-wider mb-0.5">OFO KOST MANAGEMENT</p>
                 <p>Jl. Kemuning, Mangunrejo, Tulungrejo</p>
                 <p>Kec. Pare, Kabupaten Kediri</p>
                 <p>WA: 0895-4137-94717</p>
               </div>
             </div>
             <div class="text-right flex flex-col items-end">
-              <h2 class="text-4xl font-black text-brand-black tracking-[0.15em] uppercase mb-2">INVOICE</h2>
-              <div class="bg-gray-50 border border-gray-200 px-4 py-2 rounded text-right min-w-[200px]">
+              <h2 class="text-3xl font-black text-brand-black tracking-[0.15em] uppercase mb-2">INVOICE</h2>
+              <div class="bg-gray-50 border border-gray-200 px-4 py-2 rounded text-right min-w-[180px]">
                 <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-0.5">No. Tagihan</p>
-                <p class="font-bold text-brand-black text-sm mb-2" id="outInvNumber">...</p>
+                <p class="font-bold text-brand-black text-xs mb-1.5" id="outInvNumber">...</p>
                 <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider mb-0.5">Tanggal Terbit</p>
-                <p class="font-bold text-brand-black text-sm" id="outDate">...</p>
+                <p class="font-bold text-brand-black text-xs" id="outDate">...</p>
               </div>
-              <div class="mt-3 inline-block px-4 py-1.5 text-xs font-bold rounded shadow-sm uppercase tracking-widest border" id="outInvStatusBadge">
+              <div class="mt-2 inline-block px-3 py-1 text-[11px] font-bold rounded shadow-sm uppercase tracking-widest border" id="outInvStatusBadge">
                 UNPAID
               </div>
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-8 mb-10">
+          <div class="grid grid-cols-2 gap-8 mb-8">
             <div class="space-y-1">
-              <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2 border-b border-gray-100 pb-1">Ditagihkan Kepada</p>
-              <p class="font-black text-xl text-brand-black tracking-tight" id="outName">-</p>
-              <p class="text-sm text-gray-600" id="outContact">-</p>
+              <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1.5 border-b border-gray-100 pb-1">Ditagihkan Kepada</p>
+              <p class="font-black text-lg text-brand-black tracking-tight" id="outName">-</p>
+              <p class="text-xs text-gray-600" id="outContact">-</p>
             </div>
             <div class="space-y-1" id="containerOutReservationDetail">
-              <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2 border-b border-gray-100 pb-1">Detail Tanggal</p>
-              <table class="w-full text-sm">
-                <tr id="rowOutCheckIn"><td class="text-gray-500 py-1 w-1/3">Tanggal</td><td class="font-semibold text-brand-black text-right" id="outCheckIn">-</td></tr>
-                <tr id="rowOutCheckOut"><td class="text-gray-500 py-1">Selesai</td><td class="font-semibold text-brand-black text-right" id="outCheckOut">-</td></tr>
+              <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1.5 border-b border-gray-100 pb-1">Detail Tanggal</p>
+              <table class="w-full text-xs">
+                <tr id="rowOutCheckIn"><td class="text-gray-500 py-0.5 w-1/3">Tanggal</td><td class="font-semibold text-brand-black text-right" id="outCheckIn">-</td></tr>
+                <tr id="rowOutCheckOut"><td class="text-gray-500 py-0.5">Selesai</td><td class="font-semibold text-brand-black text-right" id="outCheckOut">-</td></tr>
               </table>
             </div>
           </div>
 
-          <table class="w-full text-left border-collapse text-sm mb-8">
+          <table class="w-full text-left border-collapse text-xs mb-6">
             <thead>
               <tr class="border-y-2 border-brand-black">
-                <th class="py-3 px-2 font-bold text-[11px] uppercase tracking-wider text-gray-500">Deskripsi Layanan</th>
-                <th class="py-3 px-2 font-bold text-[11px] uppercase tracking-wider text-gray-500 text-center">Qty / Durasi</th>
-                <th class="py-3 px-2 font-bold text-[11px] uppercase tracking-wider text-gray-500 text-right">Harga Satuan</th>
-                <th class="py-3 px-2 font-bold text-[11px] uppercase tracking-wider text-gray-500 text-right">Total</th>
+                <th class="py-2 px-2 font-bold text-[10px] uppercase tracking-wider text-gray-500">Deskripsi Layanan</th>
+                <th class="py-2 px-2 font-bold text-[10px] uppercase tracking-wider text-gray-500 text-center">Qty / Durasi</th>
+                <th class="py-2 px-2 font-bold text-[10px] uppercase tracking-wider text-gray-500 text-right">Harga Satuan</th>
+                <th class="py-2 px-2 font-bold text-[10px] uppercase tracking-wider text-gray-500 text-right">Total</th>
               </tr>
             </thead>
             <tbody id="invoice-items" class="divide-y divide-gray-100"></tbody>
           </table>
 
-          <div class="flex flex-col sm:flex-row justify-between items-start mt-8 gap-8">
+          <div class="flex flex-col sm:flex-row justify-between items-start mt-6 gap-6">
             <div class="w-full sm:w-1/2">
-              <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2 border-b border-gray-100 pb-1">Instruksi Pembayaran</p>
-              <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 mt-2">
-                <p class="text-xs text-gray-500 mb-1">Transfer Bank Mandiri:</p>
-                <p class="font-bold text-lg text-brand-black tracking-widest font-mono">171-05-00004-000</p>
-                <p class="text-sm font-semibold text-gray-700 mt-1 mb-3">A/N ARAN RUANGAN KERJA</p>
-                <p class="text-[10px] text-gray-500 leading-relaxed italic">Menerima pembayaran melalui Transfer Mandiri, QRIS, dan Tunai (Cash) di resepsionis.</p>
+              <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-1 border-b border-gray-100 pb-1">Instruksi Pembayaran</p>
+              <div class="bg-gray-50 p-3 rounded-lg border border-gray-100 mt-2">
+                <p class="text-[11px] text-gray-500 mb-0.5">Transfer Bank Mandiri:</p>
+                <p class="font-bold text-base text-brand-black tracking-widest font-mono">171-05-00004-000</p>
+                <p class="text-xs font-semibold text-gray-700 mt-0.5 mb-2">A/N ARAN RUANGAN KERJA</p>
+                <p class="text-[9px] text-gray-500 leading-relaxed italic">Menerima pembayaran melalui Transfer Mandiri, QRIS, dan Tunai (Cash) di resepsionis.</p>
               </div>
             </div>
             <div class="w-full sm:w-1/2">
-              <div class="space-y-3 pt-2">
-                <div class="flex justify-between text-sm">
+              <div class="space-y-2 pt-1">
+                <div class="flex justify-between text-xs">
                   <span class="text-gray-500 font-medium">Subtotal Tagihan</span>
                   <span class="font-bold text-brand-black" id="outGrandTotal">-</span>
                 </div>
-                <div class="flex justify-between text-sm">
+                <div class="flex justify-between text-xs">
                   <span class="text-gray-500 font-medium">Telah Dibayar (Real)</span>
                   <span class="font-bold text-brand-black" id="outPaid">-</span>
                 </div>
-                <div class="flex justify-between text-xs text-gray-600 border-t border-gray-100 pt-1.5">
+                <div class="flex justify-between text-[11px] text-gray-600 border-t border-gray-100 pt-1">
                   <span class="font-medium">Metode Pembayaran</span>
                   <span class="font-bold text-brand-black" id="outMethod">-</span>
                 </div>
-                <div class="flex justify-between items-center py-4 px-4 bg-brand-black text-brand-yellow rounded-lg shadow-sm mt-4">
-                  <span class="font-bold uppercase tracking-widest text-[10px] text-white">Sisa Tagihan</span>
-                  <span id="outBalance" class="text-2xl font-black tracking-tight">-</span>
+                <div class="flex justify-between items-center py-3 px-3 bg-brand-black text-brand-yellow rounded-lg shadow-sm mt-3">
+                  <span class="font-bold uppercase tracking-widest text-[9px] text-white">Sisa Tagihan</span>
+                  <span id="outBalance" class="text-xl font-black tracking-tight">-</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Note -->
-          <div id="containerOutNote" class="mt-6 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded-r text-xs text-gray-800 hidden">
+          <div id="containerOutNote" class="mt-4 p-2.5 bg-yellow-50 border-l-4 border-yellow-400 rounded-r text-xs text-gray-800 hidden">
             <span class="font-bold text-yellow-900 uppercase tracking-wider block mb-0.5">Note:</span>
             <p id="outNote" class="italic text-gray-700 font-medium leading-relaxed"></p>
           </div>
 
-          <div class="mt-6 border-t border-gray-200 pt-4 text-[9px] leading-tight flex flex-col md:flex-row gap-4">
+          <div class="mt-6 border-t border-gray-200 pt-3 text-[9px] leading-tight flex flex-col md:flex-row gap-4">
             <div class="w-full md:w-1/3">
-              <p class="font-bold uppercase tracking-widest mb-2 text-brand-black">Kebijakan Pemesanan</p>
-              <ul class="list-disc pl-3 text-gray-600 space-y-1">
-                <li>Pembayaran DP maupun pelunasan dapat dilakukan melalui transfer Mandiri / QRIS / cash.</li>
-                <li>Pembatalan mendadak dikenakan biaya sesuai ketentuan yang berlaku.</li>
-                <li>Seluruh pembayaran yang telah dilakukan tidak dapat direfund.</li>
+              <p class="font-bold uppercase tracking-widest mb-1 text-brand-black">Kebijakan Pemesanan</p>
+              <ul class="list-disc pl-3 text-gray-600 space-y-0.5">
+                <li>Pembayaran DP maupun pelunasan dapat melalui Mandiri / QRIS / cash.</li>
+                <li>Pembatalan dikenakan biaya sesuai ketentuan.</li>
+                <li>Seluruh pembayaran tidak dapat direfund.</li>
               </ul>
             </div>
             <div class="w-full md:w-2/3">
-              <p class="font-bold uppercase tracking-widest mb-2 text-brand-black">Catatan Penting</p>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
-                <ul class="list-disc pl-3 text-gray-600 space-y-1">
+              <p class="font-bold uppercase tracking-widest mb-1 text-brand-black">Catatan Penting</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-0.5">
+                <ul class="list-disc pl-3 text-gray-600 space-y-0.5">
                   <li><span class="font-bold text-brand-black">OFO Kost berbasis syariah</span>.</li>
-                  <li>Harap menjaga kebersihan & lingkungan OFO Kost.</li>
+                  <li>Harap menjaga kebersihan & lingkungan.</li>
                   <li>Dilarang merokok di area kamar.</li>
                 </ul>
-                <ul class="list-disc pl-3 text-gray-600 space-y-1">
-                  <li>Dilarang merusak fasilitas atau barang milik kost.</li>
-                  <li>Dilarang membawa hewan peliharaan tanpa izin.</li>
+                <ul class="list-disc pl-3 text-gray-600 space-y-0.5">
+                  <li>Dilarang merusak fasilitas kost.</li>
+                  <li>Dilarang membawa hewan tanpa izin.</li>
                 </ul>
               </div>
-              <div class="mt-2.5 p-2 bg-gray-50 border border-gray-200 rounded text-[8.5px] text-gray-600 italic">
+              <div class="mt-2 p-1.5 bg-gray-50 border border-gray-200 rounded text-[8px] text-gray-600 italic">
                 <p class="font-semibold text-brand-black">✅ Dengan transaksi ini, saya menyatakan telah memahami dan menyetujui seluruh ketentuan di atas.</p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- LEMBAR KWITANSI (Langsung di bawah Invoice, otomatis tersembunyi jika UNPAID) -->
-        <div id="view-kwitansi" class="hidden page-break border-t-2 border-dashed border-gray-300 pt-8 mt-4">
-          <div class="border-[6px] border-double border-gray-400 p-8 min-h-[14cm] flex flex-col relative overflow-hidden bg-white">
+        <!-- HALAMAN 2: KWITANSI (Revisi: Tanpa No Kwitansi & Ref) -->
+        <div id="page-kwitansi" class="paper-page hidden">
+          <div class="border-[6px] border-double border-gray-400 p-8 min-h-[14cm] flex flex-col relative overflow-hidden bg-white mt-4">
             <img src="OFO.png" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[70%] opacity-[0.05] pointer-events-none select-none -rotate-12" alt="Watermark">
-            <div class="flex justify-between items-start border-b-2 border-brand-black pb-4 mb-8 z-10 relative">
-              <div class="w-32 h-12">
+            
+            <div class="flex justify-between items-center border-b-2 border-brand-black pb-4 mb-8 z-10 relative">
+              <div class="w-36 h-14">
                 <img src="OFO.png" alt="OFO Kost Premium" class="w-full h-full object-contain object-left">
               </div>
               <div class="text-right">
-                <h2 class="text-3xl font-black text-brand-black tracking-widest uppercase mb-1">KWITANSI</h2>
-                <p class="text-gray-800 text-sm font-bold mb-0.5">No. Kwitansi : <span id="kwiNumber" class="text-brand-black">...</span></p>
-                <p class="text-gray-500 text-xs font-semibold">Ref. Invoice : <span id="kwiRef" class="text-brand-black">...</span></p>
+                <h2 class="text-3xl font-black text-brand-black tracking-widest uppercase">KWITANSI</h2>
               </div>
             </div>
+
             <div class="space-y-6 text-sm flex-1 z-10 relative">
               <div class="flex pb-2">
                 <div class="w-48 font-bold text-gray-700 uppercase tracking-wide">Telah Terima Dari</div>
@@ -374,7 +381,8 @@
                 <div class="flex-1 font-bold text-brand-black border-b border-dotted border-gray-400 pb-1" id="kwiMethod">-</div>
               </div>
             </div>
-            <div class="mt-8 flex justify-between items-end z-10">
+
+            <div class="mt-12 flex justify-between items-end z-10">
               <div class="bg-gray-100 border-2 border-brand-black text-brand-black font-black text-2xl px-8 py-4 rounded shadow-sm flex items-center gap-3">
                 <span class="text-sm font-bold text-gray-500">Rp</span>
                 <span id="kwiTotal">0</span>
@@ -390,30 +398,6 @@
       </div>
     </div>
   </main>
-
-  <!-- Modals & Scripts -->
-  <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden flex flex-col items-center justify-center backdrop-blur-sm px-4">
-    <div class="bg-white p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-sm relative">
-      <div class="flex justify-center mb-6"><img src="OFO.png" alt="OFO Logo" class="h-12"></div>
-      <h3 class="text-xl font-black text-center mb-1 text-brand-black tracking-tight">Otorisasi Diperlukan</h3>
-      <p class="text-xs text-gray-500 text-center mb-6">Silakan login untuk mengakses Pengaturan Harga.</p>
-      <div class="space-y-4">
-        <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">Username</label>
-          <input type="text" id="authUsername" class="w-full px-4 py-2.5 text-sm rounded bg-gray-50 border border-gray-200 focus:bg-white focus:border-brand-black outline-none" placeholder="Masukkan username">
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">Password</label>
-          <input type="password" id="authPassword" class="w-full px-4 py-2.5 text-sm rounded bg-gray-50 border border-gray-200 focus:bg-white focus:border-brand-black outline-none" placeholder="••••••••" onkeypress="if(event.key === 'Enter') attemptLogin()">
-        </div>
-        <p id="authErrorMsg" class="text-xs text-red-600 hidden text-center font-bold bg-red-50 py-2 rounded border border-red-100"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Username atau Password salah!</p>
-      </div>
-      <div class="mt-8 flex gap-3">
-        <button onclick="hideLoginModal()" class="flex-1 py-2.5 bg-white border border-gray-300 text-gray-700 font-bold rounded text-sm">Batal</button>
-        <button onclick="attemptLogin()" class="flex-1 py-2.5 bg-brand-black text-brand-yellow font-bold rounded text-sm shadow-md">Verifikasi</button>
-      </div>
-    </div>
-  </div>
 
   <div id="notifModal" class="fixed inset-0 bg-black bg-opacity-60 z-[60] hidden flex items-center justify-center backdrop-blur-sm px-4">
     <div class="bg-white p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-sm text-center">
@@ -441,31 +425,13 @@
     };
 
     let extraServiceOptions = [
-      'Amunitas',
-      'Handuk',
-      'Bantal',
-      'Selimut',
-      'Matras',
-      'Extra Bed',
-      'Late Check out',
-      'Early Check in',
-      'Laundry',
-      'Lainnya'
+      'Amunitas', 'Handuk', 'Bantal', 'Selimut', 'Matras', 'Extra Bed', 'Late Check out', 'Early Check in', 'Laundry', 'Lainnya'
     ];
 
     let activeInvoiceBase = 1200;
-    let activeKwiBase = parseInt(localStorage.getItem('ofo_kwi_base')) || 5000;
     let activeInvoiceNum = "";
-    let activeKwiNum = "";
     let extraCounter = 0;
     let roomCounter = 0;
-
-    function generateDocString(prefix, baseNum, dateStr) {
-      const d = new Date(dateStr);
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const yy = String(d.getFullYear()).slice(-2);
-      return `${prefix}-${baseNum}/OFO/${mm}${yy}`;
-    }
 
     function formatRp(angka) { return new Intl.NumberFormat('id-ID').format(angka || 0); }
 
@@ -493,8 +459,7 @@
       if (!checkIn || !checkOut) return 0;
       const start = new Date(checkIn);
       const end = new Date(checkOut);
-      const diffTime = Math.abs(end - start);
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const diffDays = Math.ceil(Math.abs(end - start) / (1000 * 60 * 60 * 24));
       return diffDays > 0 ? diffDays : 0;
     }
 
@@ -628,9 +593,7 @@
       document.getElementById('noExtraMsg').style.display = 'none';
 
       let options = '';
-      extraServiceOptions.forEach(opt => {
-        options += `<option value="${opt}">${opt}</option>`;
-      });
+      extraServiceOptions.forEach(opt => { options += `<option value="${opt}">${opt}</option>`; });
 
       const div = document.createElement('div');
       div.className = 'extra-item flex flex-col gap-3 bg-white p-3 border border-blue-200 rounded relative shadow-sm';
@@ -653,10 +616,10 @@
           <div class="ex-dur-container">
             <label class="block text-[10px] font-semibold text-gray-600 mb-0.5 ex-dur-label">Durasi</label>
             <select class="ex-dur-select w-full text-xs p-1.5 border border-gray-300 rounded bg-white outline-none" onchange="updatePreview()">
-              <option value="1 Hari" data-val="1">1 Hari</option>
-              <option value="1 Minggu" data-val="1">1 Minggu</option>
-              <option value="2 Minggu" data-val="1">2 Minggu</option>
-              <option value="1 Bulan" data-val="1">1 Bulan</option>
+              <option value="1 Hari">1 Hari</option>
+              <option value="1 Minggu">1 Minggu</option>
+              <option value="2 Minggu">2 Minggu</option>
+              <option value="1 Bulan">1 Bulan</option>
             </select>
             <input type="number" class="ex-dur-manual w-full text-xs p-1.5 border border-gray-300 rounded font-bold text-center hidden" value="1" min="1" placeholder="Jam" oninput="updatePreview()">
             <select class="ex-laundry-type w-full text-xs p-1.5 border border-gray-300 rounded bg-white outline-none hidden" onchange="updatePreview()">
@@ -665,12 +628,10 @@
               <option value="Setrika">Setrika</option>
             </select>
           </div>
-
           <div>
             <label class="block text-[10px] font-semibold text-gray-600 mb-0.5 ex-qty-label">Qty *</label>
             <input type="number" class="ex-qty w-full text-xs p-1.5 border border-gray-300 rounded font-bold text-center" value="1" min="1" oninput="updatePreview()">
           </div>
-
           <div>
             <label class="block text-[10px] font-semibold text-gray-600 mb-0.5">Tarif / Satuan *</label>
             <div class="relative">
@@ -692,7 +653,6 @@
       const durContainer = item.querySelector('.ex-dur-container');
       const durLabel = item.querySelector('.ex-dur-label');
       const qtyLabel = item.querySelector('.ex-qty-label');
-
       const durSelect = item.querySelector('.ex-dur-select');
       const durManual = item.querySelector('.ex-dur-manual');
       const laundryType = item.querySelector('.ex-laundry-type');
@@ -750,7 +710,6 @@
       let invoiceItemsHtml = '';
       let serviceSummaryDesc = [];
 
-      // Loop Data Kamar
       document.querySelectorAll('.room-item').forEach(item => {
         const service = item.querySelector('.rm-service').value;
         const roomType = item.querySelector('.rm-type').value;
@@ -760,23 +719,17 @@
         let subTotal = 0;
         let qtyDurText = "";
 
-        if (service === 'Hotel') {
+        if (service === 'Hotel' || service === 'Longstay') {
           const dur = parseInt(item.querySelector('.rm-duration').value) || 1;
-          subTotal = rate * dur * qty;
+          subTotal = service === 'Hotel' ? rate * dur * qty : rate * qty;
           qtyDurText = `${qty} Kamar / ${dur} Malam`;
-          serviceSummaryDesc.push(`${service} (${roomType})`);
-        } else if (service === 'Longstay') {
-          const dur = parseInt(item.querySelector('.rm-duration').value) || 1;
-          subTotal = rate * qty;
-          qtyDurText = `${qty} Kamar / ${dur} Malam`;
-          serviceSummaryDesc.push(`${service} (${roomType})`);
         } else if (service === 'Kost') {
           const kostDur = item.querySelector('.rm-kost-dur').value;
           subTotal = rate * qty;
           qtyDurText = `${qty} Kamar / ${kostDur}`;
-          serviceSummaryDesc.push(`${service} (${roomType})`);
         }
 
+        serviceSummaryDesc.push(`${service} (${roomType})`);
         roomTotal += subTotal;
 
         invoiceItemsHtml += `
@@ -789,7 +742,6 @@
         `;
       });
 
-      // Loop Data Extra Service
       let extraTotal = 0;
       document.querySelectorAll('.extra-item').forEach(item => {
         const type = item.querySelector('.ex-type').value;
@@ -801,20 +753,14 @@
         let itemLabel = type === 'Lainnya' ? (customName || 'Lainnya') : type;
         let qtyDurDisplay = `${qty} Pax`;
 
-        if (type === 'Amunitas') {
-          qtyDurDisplay = `${qty} Pax`;
-        } else if (['Handuk', 'Bantal', 'Selimut', 'Matras', 'Extra Bed'].includes(type)) {
-          const durSel = item.querySelector('.ex-dur-select').value;
-          qtyDurDisplay = `${qty} Pcs / ${durSel}`;
+        if (['Handuk', 'Bantal', 'Selimut', 'Matras', 'Extra Bed'].includes(type)) {
+          qtyDurDisplay = `${qty} Pcs / ${item.querySelector('.ex-dur-select').value}`;
         } else if (['Early Check in', 'Late Check out'].includes(type)) {
-          const durJam = parseInt(item.querySelector('.ex-dur-manual').value) || 1;
-          qtyDurDisplay = `${qty} Kamar / ${durJam} Jam`;
+          qtyDurDisplay = `${qty} Kamar / ${parseInt(item.querySelector('.ex-dur-manual').value) || 1} Jam`;
         } else if (type === 'Laundry') {
-          const lType = item.querySelector('.ex-laundry-type').value;
-          qtyDurDisplay = `${qty} kg (${lType})`;
+          qtyDurDisplay = `${qty} kg (${item.querySelector('.ex-laundry-type').value})`;
         } else if (type === 'Lainnya') {
-          const durSel = item.querySelector('.ex-dur-select').value;
-          qtyDurDisplay = `${qty} / ${durSel}`;
+          qtyDurDisplay = `${qty} / ${item.querySelector('.ex-dur-select').value}`;
         }
 
         extraTotal += subTotal;
@@ -831,10 +777,7 @@
       });
 
       const grandTotal = roomTotal + extraTotal;
-      let status = 'UNPAID';
-      if (payment === 0) status = 'UNPAID';
-      else if (payment >= grandTotal) status = 'PAID';
-      else status = 'DP';
+      let status = payment === 0 ? 'UNPAID' : (payment >= grandTotal ? 'PAID' : 'DP');
 
       document.getElementById('inpStatus').value = status;
       const balance = grandTotal - payment;
@@ -846,10 +789,8 @@
       const dateSuffix = `${mm}${yy}`;
 
       document.getElementById('invSuffixPreview').textContent = `/OFO/${dateSuffix}`;
-
       const finalInvNumber = manualInvNumInput !== "" ? manualInvNumInput : activeInvoiceBase;
       activeInvoiceNum = `INV-${finalInvNumber}/OFO/${dateSuffix}`;
-      activeKwiNum = generateDocString('KWI', activeKwiBase, dateStr);
 
       document.getElementById('outInvNumber').textContent = activeInvoiceNum;
       document.getElementById('outDate').textContent = formatDate(new Date().toISOString().split('T')[0]);
@@ -869,19 +810,14 @@
       document.getElementById('outName').textContent = name;
       document.getElementById('outContact').textContent = `${phone} | ${email}`;
 
-      // Pengaturan Tampilan Tanggal
       const containerRes = document.getElementById('containerOutReservationDetail');
       const rowCheckOut = document.getElementById('rowOutCheckOut');
 
       if (checkIn || checkOut) {
         containerRes.classList.remove('hidden');
         document.getElementById('outCheckIn').textContent = formatDate(checkIn);
-        if (checkOut) {
-          rowCheckOut.style.display = 'table-row';
-          document.getElementById('outCheckOut').textContent = formatDate(checkOut);
-        } else {
-          rowCheckOut.style.display = 'none';
-        }
+        rowCheckOut.style.display = checkOut ? 'table-row' : 'none';
+        if (checkOut) document.getElementById('outCheckOut').textContent = formatDate(checkOut);
       } else {
         containerRes.classList.add('hidden');
       }
@@ -900,23 +836,24 @@
         containerNote.classList.add('hidden');
       }
 
-      document.getElementById('kwiNumber').textContent = activeKwiNum;
-      document.getElementById('kwiRef').textContent = activeInvoiceNum;
+      // Kwitansi Data (Tanpa No Kwitansi & Ref)
       document.getElementById('kwiName').textContent = name;
       document.getElementById('kwiTotal').textContent = formatRp(payment);
       document.getElementById('kwiDate').textContent = formatDate(new Date().toISOString().split('T')[0]);
       document.getElementById('kwiMethod').textContent = method;
-
-      let desc = `Pembayaran ${status === 'DP' ? 'DP' : 'Pelunasan'} ${serviceSummaryDesc.join(", ") || 'Layanan OFO Kost'}. (Ref: ${activeInvoiceNum})`;
-      document.getElementById('kwiDesc').textContent = desc;
+      document.getElementById('kwiDesc').textContent = `Pembayaran ${status === 'DP' ? 'DP' : 'Pelunasan'} ${serviceSummaryDesc.join(", ") || 'Layanan OFO Kost'}.`;
       document.getElementById('kwiTerbilang').textContent = terbilang(payment) + " Rupiah";
 
-      // ATURAN INTEGRASI KWITANSI KEBOWA (KONDISIONAL STATUS BAYAR)
-      const kwiView = document.getElementById('view-kwitansi');
+      // Pengaturan Kwitansi Kondisional
+      const kwiPage = document.getElementById('page-kwitansi');
+      const optPage2 = document.getElementById('optPage2');
+
       if (status === 'UNPAID') {
-        kwiView.classList.add('hidden');
+        kwiPage.classList.add('hidden');
+        optPage2.disabled = true;
       } else {
-        kwiView.classList.remove('hidden');
+        kwiPage.classList.remove('hidden');
+        optPage2.disabled = false;
       }
     }
 
@@ -924,42 +861,53 @@
       document.getElementById('internalBookingForm').reset();
       document.getElementById('extraServicesList').innerHTML = '';
       document.getElementById('roomItemsList').innerHTML = '';
-      extraCounter = 0;
-      roomCounter = 0;
+      extraCounter = 0; roomCounter = 0;
       document.getElementById('noExtraMsg').style.display = 'block';
       document.getElementById('noRoomMsg').classList.add('hidden');
-      initDates();
-      addRoomItem();
+      initDates(); addRoomItem();
     }
 
-    // FUNGSI DOWNLOAD PDF
-    function downloadPDF() {
-      const element = document.getElementById('document-preview-container');
+    // FUNGSI DOWNLOAD PDF DENGAN FILTER PILIHAN HALAMAN
+    function triggerPdfDownload(mode) {
+      const pageInv = document.getElementById('page-invoice');
+      const pageKwi = document.getElementById('page-kwitansi');
+      const status = document.getElementById('inpStatus').value;
+
+      // Temporary element container untuk diproses
+      const container = document.createElement('div');
+      
+      if (mode === 'all') {
+        container.appendChild(pageInv.cloneNode(true));
+        if (status !== 'UNPAID') {
+          container.appendChild(pageKwi.cloneNode(true));
+        }
+      } else if (mode === 'page1') {
+        container.appendChild(pageInv.cloneNode(true));
+      } else if (mode === 'page2' && status !== 'UNPAID') {
+        const kwiClone = pageKwi.cloneNode(true);
+        kwiClone.classList.remove('hidden');
+        container.appendChild(kwiClone);
+      }
 
       const opt = {
         margin:       0,
-        filename:     `${activeInvoiceNum}.pdf`,
+        filename:     `${activeInvoiceNum}-${mode}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
         jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' }
       };
 
-      html2pdf().set(opt).from(element).save();
+      html2pdf().set(opt).from(container).save().then(() => {
+        document.getElementById('pdfDownloadOption').value = ""; // Reset dropdown
+      });
     }
 
     async function saveToSheets() {
       const name = document.getElementById('inpName').value.trim();
       const phone = document.getElementById('inpPhone').value.trim();
 
-      if (!name) {
-        showNotification("Perhatian", "Nama tamu wajib diisi sebelum menyimpan data!", "warning");
-        document.getElementById('inpName').focus();
-        return;
-      }
-
-      if (!phone) {
-        showNotification("Perhatian", "No. WhatsApp wajib diisi sebelum menyimpan data!", "warning");
-        document.getElementById('inpPhone').focus();
+      if (!name || !phone) {
+        showNotification("Perhatian", "Nama & No. WhatsApp wajib diisi!", "warning");
         return;
       }
 
@@ -968,53 +916,38 @@
       const calcDays = calcNights(checkIn, checkOut);
 
       let roomServices = [], roomQtyList = [], totalRoomPrice = 0;
-
       document.querySelectorAll('.room-item').forEach(item => {
         const service = item.querySelector('.rm-service').value;
         const roomType = item.querySelector('.rm-type').value;
         const qty = parseInt(item.querySelector('.rm-qty').value) || 1;
         const rate = parseInt(item.querySelector('.rm-price').value) || 0;
+        let subTotal = 0, qtyDurText = "";
 
-        let subTotal = 0;
-        let qtyDurText = "";
-
-        if (service === 'Hotel') {
+        if (service === 'Hotel' || service === 'Longstay') {
           const dur = parseInt(item.querySelector('.rm-duration').value) || 1;
-          subTotal = rate * dur * qty;
+          subTotal = service === 'Hotel' ? rate * dur * qty : rate * qty;
           qtyDurText = `${qty} Kamar x ${dur} Malam`;
-        } else if (service === 'Longstay') {
-          const dur = parseInt(item.querySelector('.rm-duration').value) || 1;
-          subTotal = rate * qty;
-          qtyDurText = `${qty} Kamar (${dur} Malam)`;
         } else if (service === 'Kost') {
-          const kostDur = item.querySelector('.rm-kost-dur').value;
           subTotal = rate * qty;
-          qtyDurText = `${qty} Kamar (${kostDur})`;
+          qtyDurText = `${qty} Kamar (${item.querySelector('.rm-kost-dur').value})`;
         }
-
         totalRoomPrice += subTotal;
         roomServices.push(`${service} - ${roomType} (${qtyDurText})`);
         roomQtyList.push(qty);
       });
 
       let extraServiceNames = [], extraServicePrices = [], extraServiceDurs = [], extraServiceQtys = [], totalExtraPrice = 0;
-
       document.querySelectorAll('.extra-item').forEach(item => {
         const type = item.querySelector('.ex-type').value;
         let itemName = type === 'Lainnya' ? (item.querySelector('.ex-custom-name').value || 'Lainnya') : type;
         let rate = parseInt(item.querySelector('.ex-rate').value) || 0;
         const qty = parseInt(item.querySelector('.ex-qty').value) || 1;
-
         let durVal = "-";
-        if (['Handuk', 'Bantal', 'Selimut', 'Matras', 'Extra Bed'].includes(type)) {
-          durVal = item.querySelector('.ex-dur-select').value;
-        } else if (['Early Check in', 'Late Check out'].includes(type)) {
-          durVal = `${item.querySelector('.ex-dur-manual').value || 1} Jam`;
-        } else if (type === 'Laundry') {
-          durVal = item.querySelector('.ex-laundry-type').value;
-        } else if (type === 'Lainnya') {
-          durVal = item.querySelector('.ex-dur-select').value;
-        }
+
+        if (['Handuk', 'Bantal', 'Selimut', 'Matras', 'Extra Bed'].includes(type)) durVal = item.querySelector('.ex-dur-select').value;
+        else if (['Early Check in', 'Late Check out'].includes(type)) durVal = `${item.querySelector('.ex-dur-manual').value || 1} Jam`;
+        else if (type === 'Laundry') durVal = item.querySelector('.ex-laundry-type').value;
+        else if (type === 'Lainnya') durVal = item.querySelector('.ex-dur-select').value;
 
         totalExtraPrice += rate * qty;
         extraServiceNames.push(itemName);
@@ -1051,21 +984,15 @@
 
       try {
         const scriptURL = 'https://script.google.com/macros/s/AKfycbxyyxTOFSqRs87L2kNyLPF9-BF_TxC1qlRkl4b7sr12gYaOMof0DM4nGgpNAkpPNrBH/exec';
-        
         await fetch(scriptURL, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'text/plain;charset=utf-8'
-          },
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(payload)
         });
 
-        showNotification("Berhasil!", `Data berhasil disimpan ke Google Sheets!\nNomor Invoice Anda: ${activeInvoiceNum}`, "success");
+        showNotification("Berhasil!", `Data berhasil disimpan!\nInvoice: ${activeInvoiceNum}`, "success");
         activeInvoiceBase++;
-        activeKwiBase++;
-        localStorage.setItem('ofo_kwi_base', activeKwiBase);
         updatePreview();
-
       } catch (error) {
         showNotification("Gagal Menyimpan", error.message, "error");
       } finally {
@@ -1082,10 +1009,7 @@
       document.getElementById('inpCheckOut').value = tomorrow.toISOString().split('T')[0];
     }
 
-    window.onload = () => {
-      initDates();
-      addRoomItem();
-    };
+    window.onload = () => { initDates(); addRoomItem(); };
   </script>
 </body>
 </html>
