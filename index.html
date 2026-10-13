@@ -140,24 +140,21 @@
                                 <label class="block text-xs font-semibold text-gray-700 mb-1">Tgl Check-in *</label>
                                 <input type="date" id="inpCheckIn" onchange="updatePreview()" class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:border-brand-black outline-none">
                             </div>
-                            
-                            <!-- Container Check-out (Khusus Hotel/Longstay) -->
-                            <div id="containerCheckOut">
-                                <label class="block text-xs font-semibold text-gray-700 mb-1">Tgl Check-out *</label>
-                                <input type="date" id="inpCheckOut" onchange="updatePreview()" class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:border-brand-black outline-none">
-                            </div>
-
-                            <!-- Container Durasi (Khusus Kost) -->
-                            <div id="containerKostDuration" class="hidden">
-                                <label class="block text-xs font-semibold text-gray-700 mb-1">Durasi Kost *</label>
-                                <select id="inpKostDuration" onchange="updatePreview()" class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:border-brand-black bg-white outline-none">
-                                    <option value="1 Minggu" data-val="1">1 Minggu</option>
-                                    <option value="2 Minggu" data-val="1">2 Minggu</option>
-                                    <option value="1 Bulan" data-val="1">1 Bulan</option>
-                                </select>
-                            </div>
+                        <!-- Container Check-out -->
+                        <div id="containerCheckOut">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Tgl Check-out *</label>
+                            <input type="date" id="inpCheckOut" onchange="updatePreview()" class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:border-brand-black outline-none">
                         </div>
-
+                        <!-- Container Durasi (Khusus Kost) -->
+                        <div id="containerKostDuration" class="hidden md:col-span-2">
+                            <label class="block text-xs font-semibold text-gray-700 mb-1">Paket Durasi Kost *</label>
+                            <select id="inpKostDuration" onchange="updatePreview()" class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:border-brand-black bg-white outline-none">
+                                <option value="1 Minggu" data-val="1">1 Minggu</option>
+                                <option value="2 Minggu" data-val="1">2 Minggu</option>
+                                <option value="1 Bulan" data-val="1">1 Bulan</option>
+                            </select>
+                        </div>
+                    </div>
                         <!-- Harga Layanan Utama & Qty -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
                             <div>
@@ -1056,19 +1053,18 @@
             const hintRate = document.getElementById('hintRate');
 
             if (service === 'Kost') {
-                checkoutContainer.classList.add('hidden');
-                kostDurationContainer.classList.remove('hidden');
-                if(hintRate) hintRate.textContent = "*Total = Tarif x Durasi Kost x Jumlah Kamar.";
+                checkoutContainer.classList.remove('hidden'); // Tetap tampilkan Check-out
+                kostDurationContainer.classList.remove('hidden'); // Tampilkan Pilihan Paket Kost
+                if(hintRate) hintRate.textContent = "*Total = Tarif x Paket Kost x Jumlah Kamar.";
             } else {
                 checkoutContainer.classList.remove('hidden');
                 kostDurationContainer.classList.add('hidden');
-                if (service === 'Longstay') {
-                    if(hintRate) hintRate.textContent = "*Khusus Longstay: Tarif adalah Fix/Paket. Total = Tarif x Jumlah Kamar (tanpa dikali jumlah malam).";
-                } else {
-                    if(hintRate) hintRate.textContent = "*Total = Tarif x Jumlah Malam x Jumlah Kamar.";
-                }
+            if (service === 'Longstay') {
+                if(hintRate) hintRate.textContent = "*Khusus Longstay: Tarif adalah Fix/Paket. Total = Tarif x Jumlah Kamar.";
+            } else {
+                if(hintRate) hintRate.textContent = "*Total = Tarif x Jumlah Malam x Jumlah Kamar.";
             }
-
+        }
             handleRoomChange(); // Set harga default dari pengaturan & update preview
         }
         
@@ -1183,12 +1179,11 @@
             document.getElementById('outContact').textContent = `${phone} | ${email}`;
             document.getElementById('outCheckIn').textContent = formatDate(checkIn);
             
-            if(service === 'Kost') {
-                document.getElementById('rowOutCheckOut').style.display = 'none';
-            } else {
-                document.getElementById('rowOutCheckOut').style.display = 'table-row';
-                document.getElementById('outCheckOut').textContent = formatDate(checkOut);
-            }
+            // Keterangan Durasi
+            let durationText = service === 'Kost' ? `${kostDurText} (${nights} Malam)` : `${nights} Malam`;
+            // Tampilkan selalu baris Check-out di Invoice
+            document.getElementById('rowOutCheckOut').style.display = 'table-row';
+            document.getElementById('outCheckOut').textContent = formatDate(checkOut);
             document.getElementById('outDuration').textContent = durationText;
 
             let invoiceItemsHtml = `
@@ -1339,7 +1334,7 @@
   }            // Kumpulkan data sesuai struktur Google Sheets
             const service = document.getElementById('inpService').value;
             const checkIn = document.getElementById('inpCheckIn').value;
-            const checkOut = service === 'Kost' ? '-' : document.getElementById('inpCheckOut').value;
+            const checkOut = document.getElementById('inpCheckOut').value;
             const kostDurSelect = document.getElementById('inpKostDuration');
             const kostDurText = kostDurSelect.options[kostDurSelect.selectedIndex].text;
             const kostDurVal = parseFloat(kostDurSelect.options[kostDurSelect.selectedIndex].getAttribute('data-val')) || 1;
