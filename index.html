@@ -321,7 +321,7 @@
 
             <table class="w-full text-left border-collapse text-[11px] mb-3">
               <thead>
-                <tr class="border-y-2 border-brand-black">
+                <tr class="border-y-2 border-brand-black" id="invoice-header-row">
                   <th class="py-1.5 px-1.5 font-bold text-[9px] uppercase tracking-wider text-gray-500">Deskripsi Layanan</th>
                   <th class="py-1.5 px-1.5 font-bold text-[9px] uppercase tracking-wider text-gray-500 text-center">Qty / Durasi</th>
                   <th class="py-1.5 px-1.5 font-bold text-[9px] uppercase tracking-wider text-gray-500 text-right">Harga Satuan</th>
@@ -656,7 +656,7 @@
             </select>
           </div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
           <div>
             <label class="block text-[10px] font-semibold text-gray-600 mb-0.5">Jumlah Kamar *</label>
             <input type="number" class="rm-qty w-full px-2 py-1.5 text-xs rounded border border-gray-300 outline-none font-bold text-center" value="1" min="1" oninput="updatePreview()">
@@ -673,11 +673,20 @@
               <option value="1 Bulan">1 Bulan</option>
             </select>
           </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
           <div>
             <label class="block text-[10px] font-semibold text-gray-600 mb-0.5">Tarif / Kamar *</label>
             <div class="relative">
               <span class="absolute left-2 top-1.5 text-xs text-gray-500 font-bold">Rp</span>
               <input type="number" class="rm-price w-full pl-7 pr-2 py-1.5 text-xs rounded border border-gray-300 outline-none font-bold" oninput="updatePreview()">
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-red-600 mb-0.5">Diskon / Kamar (Opsional)</label>
+            <div class="relative">
+              <span class="absolute left-2 top-1.5 text-xs text-red-400 font-bold">Rp</span>
+              <input type="number" class="rm-discount w-full pl-7 pr-2 py-1.5 text-xs rounded border border-red-200 focus:border-red-500 outline-none font-bold text-red-600" placeholder="0" oninput="updatePreview()">
             </div>
           </div>
         </div>
@@ -862,36 +871,83 @@
       let serviceSummaryDesc = [];
       const roomItemsCount = document.querySelectorAll('.room-item').length;
 
+      // Cek apakah ada diskon di salah satu kamar
+      let hasAnyDiscount = false;
+      document.querySelectorAll('.room-item').forEach(item => {
+        const disc = parseInt(item.querySelector('.rm-discount')?.value) || 0;
+        if (disc > 0) hasAnyDiscount = true;
+      });
+
+      // Update Header Tabel Invoice secara dinamis
+      const headerRow = document.getElementById('invoice-header-row');
+      if (hasAnyDiscount) {
+        headerRow.innerHTML = `
+          <th class="py-1.5 px-1.5 font-bold text-[9px] uppercase tracking-wider text-gray-500">Deskripsi Layanan</th>
+          <th class="py-1.5 px-1.5 font-bold text-[9px] uppercase tracking-wider text-gray-500 text-center">Qty / Durasi</th>
+          <th class="py-1.5 px-1.5 font-bold text-[9px] uppercase tracking-wider text-gray-500 text-right">Harga Satuan</th>
+          <th class="py-1.5 px-1.5 font-bold text-[9px] uppercase tracking-wider text-gray-500 text-right">Setelah Diskon</th>
+          <th class="py-1.5 px-1.5 font-bold text-[9px] uppercase tracking-wider text-gray-500 text-right">Total</th>
+        `;
+      } else {
+        headerRow.innerHTML = `
+          <th class="py-1.5 px-1.5 font-bold text-[9px] uppercase tracking-wider text-gray-500">Deskripsi Layanan</th>
+          <th class="py-1.5 px-1.5 font-bold text-[9px] uppercase tracking-wider text-gray-500 text-center">Qty / Durasi</th>
+          <th class="py-1.5 px-1.5 font-bold text-[9px] uppercase tracking-wider text-gray-500 text-right">Harga Satuan</th>
+          <th class="py-1.5 px-1.5 font-bold text-[9px] uppercase tracking-wider text-gray-500 text-right">Total</th>
+        `;
+      }
+
       document.querySelectorAll('.room-item').forEach(item => {
         const service = item.querySelector('.rm-service').value;
         const roomType = item.querySelector('.rm-type').value;
         const qty = parseInt(item.querySelector('.rm-qty').value) || 1;
         const rate = parseInt(item.querySelector('.rm-price').value) || 0;
+        const discount = parseInt(item.querySelector('.rm-discount')?.value) || 0;
 
+        const effectiveRate = Math.max(0, rate - discount);
         let subTotal = 0;
         let qtyDurText = "";
 
         if (service === 'Hotel' || service === 'Longstay') {
           const dur = parseInt(item.querySelector('.rm-duration').value) || 1;
-          subTotal = service === 'Hotel' ? rate * dur * qty : rate * qty;
+          subTotal = service === 'Hotel' ? effectiveRate * dur * qty : effectiveRate * qty;
           qtyDurText = `${qty} Kamar / ${dur} Malam`;
         } else if (service === 'Kost') {
           const kostDur = item.querySelector('.rm-kost-dur').value;
-          subTotal = rate * qty;
+          subTotal = effectiveRate * qty;
           qtyDurText = `${qty} Kamar / ${kostDur}`;
         }
 
         serviceSummaryDesc.push(`${service} (${roomType})`);
         roomTotal += subTotal;
 
-        invoiceItemsHtml += `
-          <tr class="border-b border-gray-100">
-            <td class="py-1.5 px-1.5 font-medium text-gray-800">${service} - ${roomType}</td>
-            <td class="py-1.5 px-1.5 text-center text-gray-700">${qtyDurText}</td>
-            <td class="py-1.5 px-1.5 text-right text-gray-700">${formatRp(rate)}</td>
-            <td class="py-1.5 px-1.5 text-right font-medium text-brand-black">${formatRp(subTotal)}</td>
-          </tr>
-        `;
+        if (hasAnyDiscount) {
+          const rateDisplay = discount > 0 
+            ? `<span class="line-through text-gray-400 mr-1">Rp ${formatRp(rate)}</span>` 
+            : `Rp ${formatRp(rate)}`;
+          const discountedRateDisplay = discount > 0 
+            ? `<span class="font-bold text-red-600">Rp ${formatRp(effectiveRate)}</span>` 
+            : `-`;
+
+          invoiceItemsHtml += `
+            <tr class="border-b border-gray-100">
+              <td class="py-1.5 px-1.5 font-medium text-gray-800">${service} - ${roomType}</td>
+              <td class="py-1.5 px-1.5 text-center text-gray-700">${qtyDurText}</td>
+              <td class="py-1.5 px-1.5 text-right text-gray-700">${rateDisplay}</td>
+              <td class="py-1.5 px-1.5 text-right font-medium">${discountedRateDisplay}</td>
+              <td class="py-1.5 px-1.5 text-right font-medium text-brand-black">Rp ${formatRp(subTotal)}</td>
+            </tr>
+          `;
+        } else {
+          invoiceItemsHtml += `
+            <tr class="border-b border-gray-100">
+              <td class="py-1.5 px-1.5 font-medium text-gray-800">${service} - ${roomType}</td>
+              <td class="py-1.5 px-1.5 text-center text-gray-700">${qtyDurText}</td>
+              <td class="py-1.5 px-1.5 text-right text-gray-700">Rp ${formatRp(rate)}</td>
+              <td class="py-1.5 px-1.5 text-right font-medium text-brand-black">Rp ${formatRp(subTotal)}</td>
+            </tr>
+          `;
+        }
       });
 
       let extraTotal = 0;
@@ -918,14 +974,26 @@
         extraTotal += subTotal;
         serviceSummaryDesc.push(itemLabel);
 
-        invoiceItemsHtml += `
-          <tr class="border-b border-gray-100">
-            <td class="py-1.5 px-1.5 text-gray-700">${itemLabel}</td>
-            <td class="py-1.5 px-1.5 text-center text-gray-700">${qtyDurDisplay}</td>
-            <td class="py-1.5 px-1.5 text-right text-gray-700">${formatRp(rate)}</td>
-            <td class="py-1.5 px-1.5 text-right font-medium text-brand-black">${formatRp(subTotal)}</td>
-          </tr>
-        `;
+        if (hasAnyDiscount) {
+          invoiceItemsHtml += `
+            <tr class="border-b border-gray-100">
+              <td class="py-1.5 px-1.5 text-gray-700">${itemLabel}</td>
+              <td class="py-1.5 px-1.5 text-center text-gray-700">${qtyDurDisplay}</td>
+              <td class="py-1.5 px-1.5 text-right text-gray-700">Rp ${formatRp(rate)}</td>
+              <td class="py-1.5 px-1.5 text-right text-gray-400">-</td>
+              <td class="py-1.5 px-1.5 text-right font-medium text-brand-black">Rp ${formatRp(subTotal)}</td>
+            </tr>
+          `;
+        } else {
+          invoiceItemsHtml += `
+            <tr class="border-b border-gray-100">
+              <td class="py-1.5 px-1.5 text-gray-700">${itemLabel}</td>
+              <td class="py-1.5 px-1.5 text-center text-gray-700">${qtyDurDisplay}</td>
+              <td class="py-1.5 px-1.5 text-right text-gray-700">Rp ${formatRp(rate)}</td>
+              <td class="py-1.5 px-1.5 text-right font-medium text-brand-black">Rp ${formatRp(subTotal)}</td>
+            </tr>
+          `;
+        }
       });
 
       const grandTotal = roomTotal + extraTotal;
@@ -996,7 +1064,8 @@
         containerRes.classList.add('hidden');
       }
 
-      document.getElementById('invoice-items').innerHTML = invoiceItemsHtml || `<tr><td colspan="4" class="py-3 text-center text-gray-400 italic">Belum ada item layanan dipilih.</td></tr>`;
+      const emptyColSpan = hasAnyDiscount ? 5 : 4;
+      document.getElementById('invoice-items').innerHTML = invoiceItemsHtml || `<tr><td colspan="${emptyColSpan}" class="py-3 text-center text-gray-400 italic">Belum ada item layanan dipilih.</td></tr>`;
       document.getElementById('outGrandTotal').textContent = `Rp ${formatRp(grandTotal)}`;
       document.getElementById('outPaid').textContent = `Rp ${formatRp(payment)}`;
       document.getElementById('outMethod').textContent = method;
@@ -1135,14 +1204,17 @@
         const roomType = item.querySelector('.rm-type').value;
         const qty = parseInt(item.querySelector('.rm-qty').value) || 1;
         const rate = parseInt(item.querySelector('.rm-price').value) || 0;
+        const discount = parseInt(item.querySelector('.rm-discount')?.value) || 0;
+        const effectiveRate = Math.max(0, rate - discount);
+
         let subTotal = 0, qtyDurText = "";
 
         if (service === 'Hotel' || service === 'Longstay') {
           const dur = parseInt(item.querySelector('.rm-duration').value) || 1;
-          subTotal = service === 'Hotel' ? rate * dur * qty : rate * qty;
+          subTotal = service === 'Hotel' ? effectiveRate * dur * qty : effectiveRate * qty;
           qtyDurText = `${qty} Kamar x ${dur} Malam`;
         } else if (service === 'Kost') {
-          subTotal = rate * qty;
+          subTotal = effectiveRate * qty;
           qtyDurText = `${qty} Kamar (${item.querySelector('.rm-kost-dur').value})`;
         }
         totalRoomPrice += subTotal;
