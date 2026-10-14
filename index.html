@@ -292,6 +292,7 @@
             </table>
 
             <div class="flex flex-col sm:flex-row justify-between items-start gap-4 mb-2">
+              <!-- Kolom Kiri: Instruksi Pembayaran Rekening -->
               <div class="w-full sm:w-1/2">
                 <p class="text-[9px] text-gray-400 uppercase font-bold tracking-widest mb-0.5 border-b border-gray-100 pb-0.5">Instruksi Pembayaran</p>
                 <div class="bg-gray-50 p-2 rounded-lg border border-gray-100 mt-1">
@@ -301,6 +302,8 @@
                   <p class="text-[8px] text-gray-500 leading-tight italic">Pembayaran via Mandiri, QRIS, & Tunai (Cash) di resepsionis.</p>
                 </div>
               </div>
+
+              <!-- Kolom Kanan: Rincian Total, Sisa Tagihan & Metode Pembayaran (di bawah sisa tagihan) -->
               <div class="w-full sm:w-1/2">
                 <div class="space-y-1 pt-0.5">
                   <div class="flex justify-between text-[11px]">
@@ -311,13 +314,13 @@
                     <span class="text-gray-500 font-medium">Telah Dibayar (Real)</span>
                     <span class="font-bold text-brand-black" id="outPaid">-</span>
                   </div>
-                  <div class="flex justify-between text-[10px] text-gray-600 border-t border-gray-100 pt-0.5">
-                    <span class="font-medium">Metode Pembayaran</span>
-                    <span class="font-bold text-brand-black" id="outMethod">-</span>
-                  </div>
                   <div class="flex justify-between items-center py-1.5 px-2.5 bg-brand-black text-brand-yellow rounded-lg shadow-sm mt-1.5">
                     <span class="font-bold uppercase tracking-widest text-[8.5px] text-white">Sisa Tagihan</span>
                     <span id="outBalance" class="text-base font-black tracking-tight">-</span>
+                  </div>
+                  <div class="flex justify-between text-[10px] text-gray-600 border-t border-gray-100 pt-1 mt-1">
+                    <span class="font-medium">Metode Pembayaran</span>
+                    <span class="font-bold text-brand-black" id="outMethod">-</span>
                   </div>
                 </div>
               </div>
