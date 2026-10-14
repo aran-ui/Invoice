@@ -993,9 +993,19 @@
         container.appendChild(kwiClone);
       }
 
+      // Format Nama File PDF: INV_NAMA BOOKING-1201_OFO_1026-all.pdf
+      const rawName = document.getElementById('inpName').value.trim() || 'TAMU';
+      const cleanName = rawName.toUpperCase().replace(/\s+/g, ' ').replace(/[^A-Z0-9\s]/g, '');
+      
+      // Ubah activeInvoiceNum "INV-1201/OFO/1026" -> "INV_NAMA BOOKING-1201_OFO_1026"
+      const formattedInvNum = activeInvoiceNum
+        .replace('/', '_')
+        .replace('/', '_')
+        .replace('INV-', `INV_${cleanName}-`);
+
       const opt = {
         margin:       0,
-        filename:     `${activeInvoiceNum}-${mode}.pdf`,
+        filename:     `${formattedInvNum}-${mode}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true, logging: false },
         jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' },
