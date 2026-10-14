@@ -213,7 +213,7 @@
           <div class="space-y-4 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
             <h3 class="text-sm font-bold uppercase text-yellow-800 tracking-wider">Status & Riwayat Pembayaran</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <!-- No Urut Invoice (Otomatis & BISA DI-EDIT/BISA BERJALAN DARI SHEETS) -->
+              <!-- No Urut Invoice -->
               <div class="md:col-span-2">
                 <label class="block text-xs font-semibold text-gray-700 mb-1">No. Urut Invoice Manual / Otomatis</label>
                 <div class="flex items-center gap-1.5">
@@ -587,7 +587,7 @@
   </div>
 
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwPb1lcqsg5R3RPDjWHZZ5BQ5Ekudo4KwnqSSE7Xdi_BaKtZEOiCSB5l3ZRoqBwdZ1J/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyra3TodSYQcle0La0PEq5LTbgRKF5bmXBJRJ6VTa71KQs4r23rACRdJMn84oJH83oR/exec';
 
     const issuerData = [
       { name: "Yeni Aprilia", code: "YA" },
@@ -737,7 +737,6 @@
         if (json.status === 'success' && json.nextInvNumber) {
           activeInvoiceBase = json.nextInvNumber;
           
-          // LANGSUNG MASUKKAN NOMOR BARU KE ELEMEN INPUT & STATE
           const manualInput = document.getElementById('inpManualInvNum');
           if (manualInput) {
             manualInput.value = activeInvoiceBase;
@@ -770,6 +769,7 @@
 
         const d = json.data;
 
+        // 1. Fill Data Pelanggan & Penerbit
         document.getElementById('inpName').value = d.name || '';
         document.getElementById('inpPhone').value = d.phone || '';
         if (d.checkIn && d.checkIn !== '-') document.getElementById('inpCheckIn').value = d.checkIn;
@@ -784,14 +784,87 @@
           document.getElementById('inpManualInvNum').value = activeInvoiceBase;
         }
 
-        if (d.payDP) document.getElementById('inpPayDP').value = d.payDP;
-        if (d.payP1) document.getElementById('inpPayPelunasan1').value = d.payP1;
-        if (d.payP2) document.getElementById('inpPayPelunasan2').value = d.payP2;
-        if (d.payP3) document.getElementById('inpPayPelunasan3').value = d.payP3;
+        // 2. Clear Exisiting Kamar & Extra Service Forms
+        document.getElementById('roomItemsList').innerHTML = '';
+        document.getElementById('extraServicesList').innerHTML = '';
+        roomCounter = 0;
+        extraCounter = 0;
+
+        // 3. Populate Rincian Kamar (ITEM SERVICE)
+        if (d.itemService && d.itemService !== '-') {
+          const roomEntries = d.itemService.split(' | ');
+          roomEntries.forEach(roomStr => {
+            addRoomItem();
+            const currentItem = document.getElementById(`room-item-${roomCounter}`);
+            const serviceSelect = currentItem.querySelector('.rm-service');
+            const typeSelect = currentItem.querySelector('.rm-type');
+
+            if (roomStr.toUpperCase().includes('HOTEL')) serviceSelect.value = 'Hotel';
+            else if (roomStr.toUpperCase().includes('LONGSTAY')) serviceSelect.value = 'Longstay';
+            else if (roomStr.toUpperCase().includes('KOST')) serviceSelect.value = 'Kost';
+
+            handleRoomServiceChange(`room-item-${roomCounter}`);
+
+            for (let opt of typeSelect.options) {
+              if (roomStr.toLowerCase().includes(opt.value.toLowerCase())) {
+                typeSelect.value = opt.value;
+                break;
+              }
+            }
+            handleRoomTypeChange(`room-item-${roomCounter}`);
+
+            const qtyMatch = roomStr.match(/(\d+)\s*Kamar/i);
+            if (qtyMatch) currentItem.querySelector('.rm-qty').value = parseInt(qtyMatch[1]);
+
+            const durMatch = roomStr.match(/x\s*(\d+)\s*Malam/i);
+            if (durMatch && serviceSelect.value !== 'Kost') {
+              currentItem.querySelector('.rm-duration').value = parseInt(durMatch[1]);
+            }
+          });
+        } else {
+          document.getElementById('noRoomMsg').classList.remove('hidden');
+        }
+
+        // 4. Populate Layanan Tambahan (EXTRA SERVICE)
+        if (d.extraService && d.extraService !== '-') {
+          const names = d.extraService.split(', ');
+          const prices = d.extraPrice ? d.extraPrice.toString().split(', ') : [];
+          const qtys = d.extraQty ? d.extraQty.toString().split(', ') : [];
+
+          document.getElementById('noExtraMsg').style.display = 'none';
+
+          names.forEach((name, idx) => {
+            addExtraService();
+            const currentExtra = document.getElementById(`extra-${extraCounter}`);
+            const typeSelect = currentExtra.querySelector('.ex-type');
+
+            if (extraServiceOptions.includes(name.trim())) {
+              typeSelect.value = name.trim();
+            } else {
+              typeSelect.value = 'Lainnya';
+              handleExtraTypeChange(`extra-${extraCounter}`);
+              const customInp = currentExtra.querySelector('.ex-custom-name');
+              if (customInp) customInp.value = name.trim();
+            }
+
+            handleExtraTypeChange(`extra-${extraCounter}`);
+
+            if (prices[idx]) currentExtra.querySelector('.ex-rate').value = parseInt(prices[idx]) || 0;
+            if (qtys[idx]) currentExtra.querySelector('.ex-qty').value = parseInt(qtys[idx]) || 1;
+          });
+        } else {
+          document.getElementById('noExtraMsg').style.display = 'block';
+        }
+
+        // 5. Populate Riwayat Pembayaran
+        document.getElementById('inpPayDP').value = d.payDP || '';
+        document.getElementById('inpPayPelunasan1').value = d.payP1 || '';
+        document.getElementById('inpPayPelunasan2').value = d.payP2 || '';
+        document.getElementById('inpPayPelunasan3').value = d.payP3 || '';
 
         document.getElementById('notifModal').classList.add('hidden');
         updatePaymentFlow();
-        showNotification("Berhasil!", `Data Invoice ${d.invoiceNum} berhasil dimuat!`, "success");
+        showNotification("Berhasil!", `Data Invoice ${d.invoiceNum} berhasil dimuat lengkap!`, "success");
 
       } catch (err) {
         showNotification("Gagal", "Terjadi kesalahan saat mengambil data: " + err.message, "error");
@@ -1043,7 +1116,6 @@
       const noteInput = document.getElementById('inpNote') ? document.getElementById('inpNote').value.trim() : '';
       const issuerCode = document.getElementById('inpIssuerCode').value || '-';
 
-      // AMBIL KODE ANGKAN DARI KOLOM INPUT MANUAL JIKA DIUBAH USER, JIKA TIDAK GUNAKAN BASE SHEET
       const manualNumInput = document.getElementById('inpManualInvNum');
       let currentInvNum = activeInvoiceBase;
       if (manualNumInput && manualNumInput.value.trim() !== "") {
@@ -1249,7 +1321,6 @@
       document.getElementById('invoice-items').innerHTML = invoiceItemsHtml || `<tr><td colspan="${emptyColSpan}" class="py-3 text-center text-gray-400 italic">Belum ada item layanan dipilih.</td></tr>`;
       document.getElementById('outGrandTotal').textContent = `Rp ${formatRp(grandTotal)}`;
 
-      // LOGIKA PEMBAYARAN PADA INVOICE
       let paymentLogHtml = '';
       if (status === 'PAID' && (p1 === 0 && p2 === 0 && p3 === 0)) {
         paymentLogHtml = `<div class="flex justify-between text-[11px] font-bold text-gray-700 border-t border-gray-100 pt-1"><span>Total Dibayar (Lunas)</span><span class="text-green-700">Rp ${formatRp(totalPaid)}</span></div>`;
@@ -1289,7 +1360,6 @@
       });
     }
 
-    // LOGIKA KWITANSI DINAMIS
     function updateKwitansiContent(stage, data) {
       let stageTitle = "KWITANSI";
       let kwiAmount = 0;
