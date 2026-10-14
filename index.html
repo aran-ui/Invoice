@@ -234,7 +234,7 @@
       <!-- PDF Render Area -->
       <div id="pdf-render-area" class="w-full flex flex-col items-center">
         <!-- HALAMAN 1: INVOICE -->
-        <div id="page-invoice" class="paper-page flex flex-col justify-start gap-3">
+        <div id="page-invoice" class="paper-page flex flex-col justify-between gap-3">
           <img src="OFO.png" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[70%] opacity-[0.04] pointer-events-none select-none -rotate-12" alt="Watermark Invoice">
 
           <div>
@@ -329,7 +329,7 @@
             </div>
           </div>
 
-          <!-- Bagian Bawah Invoice Presisi Gambar Referensi -->
+          <!-- Bagian Bawah Invoice -->
           <div class="border-t border-gray-200 pt-2 text-[8px] leading-tight flex flex-col md:flex-row gap-3">
             <!-- Kebijakan Pemesanan (Kiri) -->
             <div class="w-full md:w-5/12">
@@ -373,8 +373,8 @@
         </div>
 
         <!-- HALAMAN 2: KWITANSI -->
-        <div id="page-kwitansi" class="paper-page hidden flex flex-col justify-start gap-3">
-          <div class="border-[5px] border-double border-gray-400 p-5 flex flex-col gap-3 relative overflow-hidden bg-white">
+        <div id="page-kwitansi" class="paper-page hidden flex flex-col justify-between gap-3">
+          <div class="border-[5px] border-double border-gray-400 p-5 flex flex-col justify-between h-full relative overflow-hidden bg-white">
             <img src="OFO.png" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[70%] opacity-[0.04] pointer-events-none select-none -rotate-12" alt="Watermark Kwitansi">
             
             <div>
@@ -387,21 +387,11 @@
                 </div>
               </div>
 
-              <div class="space-y-3 text-xs z-10 relative pt-1">
+              <div class="space-y-3 text-xs z-10 relative pt-3">
                 <div class="flex pb-1">
                   <div class="w-36 font-bold text-gray-700 uppercase tracking-wide">Telah Terima Dari</div>
                   <div class="w-4">:</div>
                   <div class="flex-1 font-bold text-base text-brand-black border-b border-dotted border-gray-400 pb-0.5" id="kwiName">-</div>
-                </div>
-                <div class="flex pb-1">
-                  <div class="w-36 font-bold text-gray-700 uppercase tracking-wide">Uang Sejumlah</div>
-                  <div class="w-4">:</div>
-                  <div class="flex-1 bg-gray-100/80 px-3 py-1.5 italic text-gray-800 font-bold rounded border border-gray-200" id="kwiTerbilang">-</div>
-                </div>
-
-                <div class="flex items-center gap-3 py-1 bg-gray-50 border border-gray-200 rounded px-3 w-fit">
-                  <span class="text-xs font-bold text-gray-500 uppercase">Nominal Rp :</span>
-                  <span class="font-black text-brand-black text-base" id="kwiTotal">0</span>
                 </div>
 
                 <div class="flex pb-1" id="kwiDatesRow">
@@ -415,12 +405,27 @@
                   <div class="w-4">:</div>
                   <div class="flex-1 text-gray-800 font-medium leading-relaxed border-b border-dotted border-gray-400 pb-0.5 min-h-[2rem]" id="kwiDesc">-</div>
                 </div>
+
+                <!-- Metode Bayar -->
                 <div class="flex pb-1">
                   <div class="w-36 font-bold text-gray-700 uppercase tracking-wide">Metode Bayar</div>
                   <div class="w-4">:</div>
                   <div class="flex-1 font-bold text-brand-black border-b border-dotted border-gray-400 pb-0.5" id="kwiMethod">-</div>
                 </div>
 
+                <!-- Nominal Rp & Terbilang -->
+                <div class="flex pb-1 pt-1">
+                  <div class="w-36 font-bold text-gray-700 uppercase tracking-wide">Uang Sejumlah</div>
+                  <div class="w-4">:</div>
+                  <div class="flex-1 bg-gray-100/80 px-3 py-2 italic text-gray-800 font-bold rounded border border-gray-200" id="kwiTerbilang">-</div>
+                </div>
+
+                <div class="flex items-center gap-3 py-1.5 bg-gray-50 border border-gray-200 rounded px-3 w-fit">
+                  <span class="text-xs font-bold text-gray-500 uppercase">Nominal Rp :</span>
+                  <span class="font-black text-brand-black text-base" id="kwiTotal">0</span>
+                </div>
+
+                <!-- Bagian TTD & Tanggal -->
                 <div class="flex justify-end pt-2 z-10">
                   <div class="text-center w-44">
                     <p class="text-xs mb-0.5 text-gray-600">Kediri, <span id="kwiDate" class="font-bold text-brand-black">...</span></p>
@@ -429,21 +434,46 @@
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div class="border-t border-gray-200 pt-2 text-[7.5px] leading-tight flex flex-col md:flex-row gap-3">
-                <div class="w-full md:w-5/12">
-                  <p class="font-bold uppercase tracking-widest mb-0.5 text-brand-black">KEBIJAKAN PEMESANAN</p>
-                  <ul class="list-disc pl-3 text-gray-600 space-y-0.5">
-                    <li>Pembayaran DP maupun pelunasan dapat dilakukan melalui transfer Mandiri / QRIS / cash saat check in.</li>
-                    <li>Pembatalan mendadak (≤ H-3) dikenakan biaya 100%.</li>
-                    <li>Seluruh pembayaran tidak dapat direfund.</li>
+            <!-- Bagian Bawah Kwitansi LENGKAP -->
+            <div class="border-t border-gray-200 pt-2 text-[8px] leading-tight flex flex-col md:flex-row gap-3">
+              <!-- Kebijakan Pemesanan (Kiri) -->
+              <div class="w-full md:w-5/12">
+                <p class="font-bold uppercase tracking-widest mb-1 text-brand-black">KEBIJAKAN PEMESANAN</p>
+                <ul class="list-disc pl-3 text-gray-600 space-y-1">
+                  <li>Pembayaran DP maupun pelunasan dapat dilakukan melalui transfer Mandiri / QRIS / cash saat check in.</li>
+                  <li>Pembatalan mendadak (≤ H-3 sebelum check in) dikenakan biaya 100% dari total pemesanan.</li>
+                  <li>Seluruh pembayaran yang telah dilakukan tidak dapat direfund.</li>
+                </ul>
+              </div>
+
+              <!-- Catatan Penting! (Kanan - 2 Kolom Rapi) -->
+              <div class="w-full md:w-7/12">
+                <p class="font-bold uppercase tracking-widest mb-1 text-brand-black">CATATAN PENTING!</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-1">
+                  <ul class="list-disc pl-3 text-gray-600 space-y-1">
+                    <li><span class="font-bold text-brand-black">OFO Kost berbasis syariah</span> (Dilarang membawa tamu lawan jenis yang belum sah).</li>
+                    <li>Harap menjaga kebersihan kamar & lingkungan OFO Kost.</li>
+                    <li>Ketentuan jam check in pukul 14.00 dan check out pukul 12.00.</li>
+                    <li>Dilarang merokok di area kamar (gunakan Area Merokok di Taman OFO).</li>
+                  </ul>
+                  <ul class="list-disc pl-3 text-gray-600 space-y-1">
+                    <li>Dilarang membuat keributan yang mengganggu ketenangan.</li>
+                    <li>Dilarang merusak fasilitas atau barang milik kost.</li>
+                    <li>Dilarang menggunakan alat listrik berdaya tinggi tanpa izin.</li>
+                    <li>Dilarang membawa hewan peliharaan tanpa izin.</li>
                   </ul>
                 </div>
-                <div class="w-full md:w-7/12">
-                  <p class="font-bold uppercase tracking-widest mb-0.5 text-brand-black">CATATAN PENTING!</p>
-                  <p class="text-gray-600 mb-0.5">• <span class="font-bold text-brand-black">OFO Kost berbasis syariah</span>. Check in 14.00, check out 12.00.</p>
-                  <p class="text-gray-600">• Dilarang merokok di area kamar, merusak fasilitas, atau membuat keributan.</p>
-                  <p class="font-semibold text-red-600 mt-0.5">⚠️ Denda pelanggaran mulai Rp100.000 hingga pengganti barang.</p>
+
+                <!-- Peringatan Denda -->
+                <p class="mt-1.5 font-semibold text-red-600 flex items-center gap-1">
+                  <span>⚠️</span> Denda pelanggaran mulai dari Rp100.000 hingga biaya pengganti barang jika terjadi kerusakan fasilitas.
+                </p>
+
+                <!-- Box Persetujuan -->
+                <div class="mt-1 p-1 bg-gray-50 border border-gray-200 rounded text-[7.5px] text-gray-700 italic">
+                  <p class="font-semibold text-brand-black">✅ Dengan pemesanan ini, saya menyatakan telah membaca, memahami, dan menyetujui seluruh peraturan di atas.</p>
                 </div>
               </div>
             </div>
