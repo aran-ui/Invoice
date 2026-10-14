@@ -804,7 +804,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
           <div>
             <label class="block text-[10px] font-semibold text-gray-600 mb-0.5">Kategori *</label>
-            <select class="rm-service w-full px-2 py-1.5 text-xs rounded border border-gray-300 bg-white outline-none" onchange="handleRoomServiceChange('${id}')">
+            <select class="rm-service w-full px-2 py-1.5 text-xs rounded border border-gray-300 bg-white outline-none" onchange="handleRoomServiceChange('${id}'); updatePreview();">
               <option value="Hotel">HOTEL</option>
               <option value="Longstay">LONG STAY</option>
               <option value="Kost">KOST</option>
@@ -812,7 +812,7 @@
           </div>
           <div>
             <label class="block text-[10px] font-semibold text-gray-600 mb-0.5">Tipe Kamar *</label>
-            <select class="rm-type w-full px-2 py-1.5 text-xs rounded border border-gray-300 bg-white outline-none" onchange="handleRoomTypeChange('${id}')">
+            <select class="rm-type w-full px-2 py-1.5 text-xs rounded border border-gray-300 bg-white outline-none" onchange="handleRoomTypeChange('${id}'); updatePreview();">
             </select>
           </div>
         </div>
@@ -921,7 +921,7 @@
         <div class="flex justify-between items-center gap-2">
           <div class="flex-1">
             <label class="block text-[10px] font-semibold text-gray-600 mb-0.5">Layanan *</label>
-            <select class="ex-type w-full text-xs p-1.5 border border-gray-300 rounded bg-white outline-none" onchange="handleExtraTypeChange('${id}')">${options}</select>
+            <select class="ex-type w-full text-xs p-1.5 border border-gray-300 rounded bg-white outline-none" onchange="handleExtraTypeChange('${id}'); updatePreview();">${options}</select>
             <div class="custom-fields hidden mt-1">
               <input type="text" class="ex-custom-name w-full text-xs p-1.5 border border-gray-300 rounded" placeholder="Nama Layanan Lainnya" oninput="updatePreview()">
             </div>
@@ -1015,9 +1015,9 @@
     }
 
     function updatePreview() {
-      const name = document.getElementById('inpName').value || 'Nama Tamu';
-      const phone = document.getElementById('inpPhone').value || '-';
-      const email = document.getElementById('inpEmail').value || '-';
+      const name = document.getElementById('inpName').value.trim() || 'Nama Tamu';
+      const phone = document.getElementById('inpPhone').value.trim() || '-';
+      const email = document.getElementById('inpEmail').value.trim() || '-';
       const checkIn = document.getElementById('inpCheckIn').value;
       const checkOut = document.getElementById('inpCheckOut').value;
 
@@ -1174,7 +1174,7 @@
 
       document.getElementById('invSuffixPreview').textContent = `/OFO/${dateSuffix}`;
       
-      // FORMULA UTAMA NOMOR INVOICE LANGSUNG DIBENTUK:
+      // FORMULA NOMOR INVOICE LANGSUNG TERBENTUK DENGAN BASE ANKA TERPUSAT (DIMULAI 2000+)
       activeInvoiceNum = `INV-${activeInvoiceBase}/OFO/${dateSuffix}`;
 
       const dispAuto = document.getElementById('displayAutoInvNum');
@@ -1235,7 +1235,7 @@
       document.getElementById('invoice-items').innerHTML = invoiceItemsHtml || `<tr><td colspan="${emptyColSpan}" class="py-3 text-center text-gray-400 italic">Belum ada item layanan dipilih.</td></tr>`;
       document.getElementById('outGrandTotal').textContent = `Rp ${formatRp(grandTotal)}`;
 
-      // LOGIKA PEMBAYARAN PADA INVOICE:
+      // LOGIKA PEMBAYARAN PADA INVOICE
       let paymentLogHtml = '';
       if (status === 'PAID' && (p1 === 0 && p2 === 0 && p3 === 0)) {
         paymentLogHtml = `<div class="flex justify-between text-[11px] font-bold text-gray-700 border-t border-gray-100 pt-1"><span>Total Dibayar (Lunas)</span><span class="text-green-700">Rp ${formatRp(totalPaid)}</span></div>`;
