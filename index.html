@@ -209,9 +209,9 @@
             <p id="noExtraMsg" class="text-xs text-gray-500 italic">Belum ada layanan tambahan.</p>
           </div>
 
-          <!-- Status & Pembayaran -->
+          <!-- Status & Pembayaran Bertahap -->
           <div class="space-y-4 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-            <h3 class="text-sm font-bold uppercase text-yellow-800 tracking-wider">Status & Pembayaran</h3>
+            <h3 class="text-sm font-bold uppercase text-yellow-800 tracking-wider">Status & Riwayat Pembayaran</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div class="md:col-span-2">
                 <label class="block text-xs font-semibold text-gray-700 mb-1">No. Urut Invoice Manual (Opsional)</label>
@@ -221,13 +221,43 @@
                   <span class="text-xs font-bold text-gray-600 bg-gray-200 px-2 py-2 rounded border border-gray-300" id="invSuffixPreview">/OFO/MMYY</span>
                 </div>
               </div>
+
+              <!-- Pembayaran DP -->
               <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Nominal Dibayar (Real) *</label>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Pembayaran DP (Rp)</label>
                 <div class="relative">
                   <span class="absolute left-3 top-2 text-sm text-gray-500 font-bold">Rp</span>
-                  <input type="number" id="inpPayment" oninput="updatePreview()" class="w-full pl-9 pr-3 py-2 text-sm rounded border border-gray-300 focus:border-brand-black outline-none font-bold text-brand-black" placeholder="Cth: 500000">
+                  <input type="number" id="inpPayDP" oninput="updatePaymentFlow()" class="w-full pl-9 pr-3 py-2 text-sm rounded border border-gray-300 focus:border-brand-black outline-none font-bold text-brand-black" placeholder="0">
                 </div>
               </div>
+
+              <!-- Pelunasan 1 -->
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Pelunasan 1 (Rp)</label>
+                <div class="relative">
+                  <span class="absolute left-3 top-2 text-sm text-gray-500 font-bold">Rp</span>
+                  <input type="number" id="inpPayPelunasan1" oninput="updatePaymentFlow()" class="w-full pl-9 pr-3 py-2 text-sm rounded border border-gray-300 focus:border-brand-black outline-none font-bold text-brand-black" placeholder="0">
+                </div>
+              </div>
+
+              <!-- Pelunasan 2 (Dinamis) -->
+              <div id="containerPayPelunasan2" class="hidden">
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Pelunasan 2 (Rp)</label>
+                <div class="relative">
+                  <span class="absolute left-3 top-2 text-sm text-gray-500 font-bold">Rp</span>
+                  <input type="number" id="inpPayPelunasan2" oninput="updatePaymentFlow()" class="w-full pl-9 pr-3 py-2 text-sm rounded border border-gray-300 focus:border-brand-black outline-none font-bold text-brand-black" placeholder="0">
+                </div>
+              </div>
+
+              <!-- Pelunasan 3 (Dinamis) -->
+              <div id="containerPayPelunasan3" class="hidden">
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Pelunasan 3 (Rp)</label>
+                <div class="relative">
+                  <span class="absolute left-3 top-2 text-sm text-gray-500 font-bold">Rp</span>
+                  <input type="number" id="inpPayPelunasan3" oninput="updatePaymentFlow()" class="w-full pl-9 pr-3 py-2 text-sm rounded border border-gray-300 focus:border-brand-black outline-none font-bold text-brand-black" placeholder="0">
+                </div>
+              </div>
+
               <div>
                 <label class="block text-xs font-semibold text-gray-700 mb-1">Status Pembayaran</label>
                 <select id="inpStatus" disabled class="w-full px-3 py-2 text-sm rounded border border-gray-300 bg-gray-100 text-gray-500 font-bold outline-none cursor-not-allowed">
@@ -236,7 +266,8 @@
                   <option value="UNPAID">Belum Bayar</option>
                 </select>
               </div>
-              <div class="md:col-span-2">
+
+              <div>
                 <label class="block text-xs font-semibold text-gray-700 mb-1">Metode Pembayaran *</label>
                 <select id="inpMethod" onchange="updatePreview()" class="w-full px-3 py-2 text-sm rounded border border-gray-300 focus:border-brand-black bg-white outline-none">
                   <option value="Transfer Bank Mandiri">Transfer Bank Mandiri</option>
@@ -276,9 +307,12 @@
           <div class="relative inline-block text-left">
             <select id="pdfDownloadOption" onchange="triggerPdfDownload(this.value)" class="px-3 py-1.5 text-xs md:text-sm bg-brand-yellow text-brand-black font-bold rounded shadow-sm outline-none cursor-pointer hover:bg-yellow-500 border border-yellow-400">
               <option value="" disabled selected>📥 Download PDF ...</option>
-              <option value="all">Satu File (Invoice + Kwitansi)</option>
+              <option value="all">Satu File (Invoice + Kwitansi Terakhir)</option>
               <option value="page1">Lembar 1 Saja (Invoice)</option>
-              <option value="page2" id="optPage2">Lembar 2 Saja (Kwitansi)</option>
+              <option value="page2_dp" id="optPage2_dp">Kwitansi DP</option>
+              <option value="page2_p1" id="optPage2_p1">Kwitansi Pelunasan 1</option>
+              <option value="page2_p2" id="optPage2_p2" class="hidden">Kwitansi Pelunasan 2</option>
+              <option value="page2_p3" id="optPage2_p3" class="hidden">Kwitansi Pelunasan 3</option>
             </select>
           </div>
         </div>
@@ -355,16 +389,17 @@
                 </div>
               </div>
 
+              <!-- Kolom Rincian Subtotal & Multi-Pembayaran -->
               <div class="w-full sm:w-1/2">
                 <div class="space-y-1 pt-0.5">
                   <div class="flex justify-between text-[11px]">
                     <span class="text-gray-500 font-medium">Subtotal Tagihan</span>
                     <span class="font-bold text-brand-black" id="outGrandTotal">-</span>
                   </div>
-                  <div class="flex justify-between text-[11px]">
-                    <span class="text-gray-500 font-medium">Telah Dibayar (Real)</span>
-                    <span class="font-bold text-brand-black" id="outPaid">-</span>
-                  </div>
+
+                  <!-- Riwayat Multi Pembayaran -->
+                  <div id="outPaymentLogs" class="space-y-0.5 text-[10.5px] border-t border-gray-100 pt-1"></div>
+
                   <div class="flex justify-between items-center py-1.5 px-2.5 bg-brand-black text-brand-yellow rounded-lg shadow-sm mt-1.5">
                     <span class="font-bold uppercase tracking-widest text-[8.5px] text-white">Sisa Tagihan</span>
                     <span id="outBalance" class="text-base font-black tracking-tight">-</span>
@@ -433,7 +468,7 @@
                   <img src="OFO.png" alt="OFO Kost Premium" class="logo-img">
                 </div>
                 <div class="text-right">
-                  <h2 class="text-2xl font-black text-brand-black tracking-widest uppercase">KWITANSI</h2>
+                  <h2 class="text-2xl font-black text-brand-black tracking-widest uppercase" id="kwiTitleHeader">KWITANSI</h2>
                   <p class="text-[9px] font-bold text-gray-600 uppercase tracking-tight mt-0.5" id="kwiIssueMeta">-</p>
                 </div>
               </div>
@@ -590,6 +625,7 @@
     let activeInvoiceNum = "";
     let extraCounter = 0;
     let roomCounter = 0;
+    let currentActiveKwiStage = 'DP';
 
     function formatRp(angka) { return new Intl.NumberFormat('id-ID').format(angka || 0); }
 
@@ -635,7 +671,38 @@
       document.getElementById('notifModal').classList.remove('hidden');
     }
 
-    // 1. Ambil Nomor Invoice Terurut dari Sheets Terpusat
+    function updatePaymentFlow() {
+      const pDP = parseInt(document.getElementById('inpPayDP').value) || 0;
+      const p1 = parseInt(document.getElementById('inpPayPelunasan1').value) || 0;
+
+      const c2 = document.getElementById('containerPayPelunasan2');
+      const c3 = document.getElementById('containerPayPelunasan3');
+      const optP2 = document.getElementById('optPage2_p2');
+      const optP3 = document.getElementById('optPage2_p3');
+
+      if (p1 > 0) {
+        c2.classList.remove('hidden');
+        optP2.classList.remove('hidden');
+      } else {
+        c2.classList.add('hidden');
+        optP2.classList.add('hidden');
+        document.getElementById('inpPayPelunasan2').value = '';
+      }
+
+      const p2 = parseInt(document.getElementById('inpPayPelunasan2').value) || 0;
+
+      if (p2 > 0 && p1 > 0) {
+        c3.classList.remove('hidden');
+        optP3.classList.remove('hidden');
+      } else {
+        c3.classList.add('hidden');
+        optP3.classList.add('hidden');
+        document.getElementById('inpPayPelunasan3').value = '';
+      }
+
+      updatePreview();
+    }
+
     async function fetchNextInvoiceNumber() {
       try {
         const res = await fetch(`${SCRIPT_URL}?action=getNextInvNumber`);
@@ -649,7 +716,6 @@
       }
     }
 
-    // 2. Tarik Data Invoice Lama
     async function fetchInvoiceData() {
       const searchInput = document.getElementById('inpSearchInv').value.trim();
       if (!searchInput) {
@@ -683,10 +749,13 @@
           document.getElementById('inpManualInvNum').value = match[1];
         }
 
-        document.getElementById('inpPayment').value = d.totalPrice || 0;
+        if (d.payDP) document.getElementById('inpPayDP').value = d.payDP;
+        if (d.payP1) document.getElementById('inpPayPelunasan1').value = d.payP1;
+        if (d.payP2) document.getElementById('inpPayPelunasan2').value = d.payP2;
+        if (d.payP3) document.getElementById('inpPayPelunasan3').value = d.payP3;
 
         document.getElementById('notifModal').classList.add('hidden');
-        updatePreview();
+        updatePaymentFlow();
         showNotification("Berhasil!", `Data Invoice ${d.invoiceNum} berhasil dimuat!`, "success");
 
       } catch (err) {
@@ -927,7 +996,14 @@
       const email = document.getElementById('inpEmail').value || '-';
       const checkIn = document.getElementById('inpCheckIn').value;
       const checkOut = document.getElementById('inpCheckOut').value;
-      let payment = parseInt(document.getElementById('inpPayment').value) || 0;
+
+      const pDP = parseInt(document.getElementById('inpPayDP').value) || 0;
+      const p1 = parseInt(document.getElementById('inpPayPelunasan1').value) || 0;
+      const p2 = parseInt(document.getElementById('inpPayPelunasan2').value) || 0;
+      const p3 = parseInt(document.getElementById('inpPayPelunasan3').value) || 0;
+
+      const totalPaid = pDP + p1 + p2 + p3;
+
       const method = document.getElementById('inpMethod').value;
       const manualInvNumInput = document.getElementById('inpManualInvNum') ? document.getElementById('inpManualInvNum').value.trim() : '';
       const noteInput = document.getElementById('inpNote') ? document.getElementById('inpNote').value.trim() : '';
@@ -1062,10 +1138,10 @@
       });
 
       const grandTotal = roomTotal + extraTotal;
-      let status = payment === 0 ? 'UNPAID' : (payment >= grandTotal ? 'PAID' : 'DP');
+      let status = totalPaid === 0 ? 'UNPAID' : (totalPaid >= grandTotal ? 'PAID' : 'DP');
 
       document.getElementById('inpStatus').value = status;
-      const balance = grandTotal - payment;
+      const balance = grandTotal - totalPaid;
       const dateStr = checkIn || new Date().toISOString().split('T')[0];
 
       const d = new Date(dateStr);
@@ -1130,7 +1206,21 @@
       const emptyColSpan = hasAnyDiscount ? 5 : 4;
       document.getElementById('invoice-items').innerHTML = invoiceItemsHtml || `<tr><td colspan="${emptyColSpan}" class="py-3 text-center text-gray-400 italic">Belum ada item layanan dipilih.</td></tr>`;
       document.getElementById('outGrandTotal').textContent = `Rp ${formatRp(grandTotal)}`;
-      document.getElementById('outPaid').textContent = `Rp ${formatRp(payment)}`;
+
+      // Render Riwayat Pembayaran pada Invoice
+      let paymentLogHtml = '';
+      if (pDP > 0) paymentLogHtml += `<div class="flex justify-between text-gray-600"><span>Pembayaran DP</span><span class="font-bold text-brand-black">Rp ${formatRp(pDP)}</span></div>`;
+      if (p1 > 0) paymentLogHtml += `<div class="flex justify-between text-gray-600"><span>Pelunasan 1</span><span class="font-bold text-brand-black">Rp ${formatRp(p1)}</span></div>`;
+      if (p2 > 0) paymentLogHtml += `<div class="flex justify-between text-gray-600"><span>Pelunasan 2</span><span class="font-bold text-brand-black">Rp ${formatRp(p2)}</span></div>`;
+      if (p3 > 0) paymentLogHtml += `<div class="flex justify-between text-gray-600"><span>Pelunasan 3</span><span class="font-bold text-brand-black">Rp ${formatRp(p3)}</span></div>`;
+
+      if (totalPaid === 0) {
+        paymentLogHtml = `<div class="flex justify-between text-gray-500 font-medium"><span>Telah Dibayar</span><span class="font-bold text-brand-black">Rp 0</span></div>`;
+      } else {
+        paymentLogHtml += `<div class="flex justify-between text-[11px] font-bold text-gray-700 border-t border-dashed border-gray-200 pt-0.5 mt-0.5"><span>Total Dibayar</span><span>Rp ${formatRp(totalPaid)}</span></div>`;
+      }
+
+      document.getElementById('outPaymentLogs').innerHTML = paymentLogHtml;
       document.getElementById('outMethod').textContent = method;
       document.getElementById('outBalance').textContent = `Rp ${formatRp(balance < 0 ? 0 : balance)}`;
 
@@ -1142,32 +1232,66 @@
         containerNote.classList.add('hidden');
       }
 
-      // Kwitansi Data Update
-      document.getElementById('kwiName').textContent = name;
-      document.getElementById('kwiTotal').textContent = formatRp(payment);
+      // Kwitansi Terakhir / Aktif Update
+      updateKwitansiContent(currentActiveKwiStage, {
+        name, method, serviceSummaryDesc, pDP, p1, p2, p3, checkIn, checkOut
+      });
+    }
+
+    function updateKwitansiContent(stage, data) {
+      let stageTitle = "KWITANSI";
+      let kwiAmount = 0;
+
+      if (stage === 'DP') {
+        stageTitle = "KWITANSI DP";
+        kwiAmount = data.pDP;
+      } else if (stage === 'P1') {
+        stageTitle = "KWITANSI PELUNASAN 1";
+        kwiAmount = data.p1;
+      } else if (stage === 'P2') {
+        stageTitle = "KWITANSI PELUNASAN 2";
+        kwiAmount = data.p2;
+      } else if (stage === 'P3') {
+        stageTitle = "KWITANSI PELUNASAN 3";
+        kwiAmount = data.p3;
+      } else {
+        // Auto / Terakhir
+        if (data.p3 > 0) { stageTitle = "KWITANSI PELUNASAN 3"; kwiAmount = data.p3; }
+        else if (data.p2 > 0) { stageTitle = "KWITANSI PELUNASAN 2"; kwiAmount = data.p2; }
+        else if (data.p1 > 0) { stageTitle = "KWITANSI PELUNASAN 1"; kwiAmount = data.p1; }
+        else { stageTitle = "KWITANSI DP"; kwiAmount = data.pDP; }
+      }
+
+      document.getElementById('kwiTitleHeader').textContent = stageTitle;
+      document.getElementById('kwiName').textContent = data.name;
+      document.getElementById('kwiTotal').textContent = formatRp(kwiAmount);
       document.getElementById('kwiDate').textContent = formatDate(new Date().toISOString().split('T')[0]);
-      document.getElementById('kwiMethod').textContent = method;
-      document.getElementById('kwiDesc').textContent = `Pembayaran ${status === 'DP' ? 'DP' : 'Pelunasan'} ${serviceSummaryDesc.join(", ") || 'Layanan OFO Kost'}.`;
-      document.getElementById('kwiTerbilang').textContent = terbilang(payment) + " Rupiah";
+      document.getElementById('kwiMethod').textContent = data.method;
+      document.getElementById('kwiDesc').textContent = `Pembayaran ${stageTitle} ${data.serviceSummaryDesc ? data.serviceSummaryDesc.join(", ") : 'Layanan OFO Kost'}.`;
+      document.getElementById('kwiTerbilang').textContent = terbilang(kwiAmount) + " Rupiah";
 
       const kwiDatesDisplay = document.getElementById('kwiDatesDisplay');
-      if (checkIn && checkOut) {
-        kwiDatesDisplay.textContent = `${formatDate(checkIn)} s/d ${formatDate(checkOut)}`;
-      } else if (checkIn) {
-        kwiDatesDisplay.textContent = `${formatDate(checkIn)}`;
+      if (data.checkIn && data.checkOut) {
+        kwiDatesDisplay.textContent = `${formatDate(data.checkIn)} s/d ${formatDate(data.checkOut)}`;
+      } else if (data.checkIn) {
+        kwiDatesDisplay.textContent = `${formatDate(data.checkIn)}`;
       } else {
         kwiDatesDisplay.textContent = "-";
       }
 
+      const totalPaidAll = data.pDP + data.p1 + data.p2 + data.p3;
       const kwiPage = document.getElementById('page-kwitansi');
-      const optPage2 = document.getElementById('optPage2');
+      const optPage2DP = document.getElementById('optPage2_dp');
+      const optPage2P1 = document.getElementById('optPage2_p1');
 
-      if (status === 'UNPAID') {
+      if (totalPaidAll === 0) {
         kwiPage.classList.add('hidden');
-        optPage2.disabled = true;
+        optPage2DP.disabled = true;
+        optPage2P1.disabled = true;
       } else {
         kwiPage.classList.remove('hidden');
-        optPage2.disabled = false;
+        optPage2DP.disabled = false;
+        optPage2P1.disabled = false;
       }
     }
 
@@ -1195,6 +1319,14 @@
         return;
       }
 
+      if (mode === 'page2_dp') currentActiveKwiStage = 'DP';
+      else if (mode === 'page2_p1') currentActiveKwiStage = 'P1';
+      else if (mode === 'page2_p2') currentActiveKwiStage = 'P2';
+      else if (mode === 'page2_p3') currentActiveKwiStage = 'P3';
+      else currentActiveKwiStage = 'AUTO';
+
+      updatePreview();
+
       const pageInv = document.getElementById('page-invoice');
       const pageKwi = document.getElementById('page-kwitansi');
       const status = document.getElementById('inpStatus').value;
@@ -1208,7 +1340,7 @@
         }
       } else if (mode === 'page1') {
         container.appendChild(pageInv.cloneNode(true));
-      } else if (mode === 'page2' && status !== 'UNPAID') {
+      } else if (mode.startsWith('page2') && status !== 'UNPAID') {
         const kwiClone = pageKwi.cloneNode(true);
         kwiClone.classList.remove('hidden');
         container.appendChild(kwiClone);
@@ -1243,6 +1375,7 @@
       extraCounter = 0; roomCounter = 0;
       document.getElementById('noExtraMsg').style.display = 'block';
       document.getElementById('noRoomMsg').classList.add('hidden');
+      updatePaymentFlow();
       initDates(); addRoomItem();
     }
 
@@ -1306,6 +1439,11 @@
       const issuerName = document.getElementById('inpIssuerName').value || "-";
       const issuerCode = document.getElementById('inpIssuerCode').value || "-";
 
+      const pDP = parseInt(document.getElementById('inpPayDP').value) || 0;
+      const p1 = parseInt(document.getElementById('inpPayPelunasan1').value) || 0;
+      const p2 = parseInt(document.getElementById('inpPayPelunasan2').value) || 0;
+      const p3 = parseInt(document.getElementById('inpPayPelunasan3').value) || 0;
+
       const payload = {
         "INPUT DATE": new Date().toISOString().split('T')[0],
         "INVOICE NUMBER": activeInvoiceNum,
@@ -1326,7 +1464,11 @@
         "Extra Duration": extraServiceDurs.join(", ") || "-",
         "Extra QTY": extraServiceQtys.join(", ") || "0",
         "Total extra price": totalExtraPrice,
-        "Total Price": totalRoomPrice + totalExtraPrice
+        "Total Price": totalRoomPrice + totalExtraPrice,
+        "PAY DP": pDP,
+        "PAY P1": p1,
+        "PAY P2": p2,
+        "PAY P3": p3
       };
 
       const btn = document.querySelector('button[onclick="saveToSheets()"]');
