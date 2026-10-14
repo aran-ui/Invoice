@@ -309,6 +309,7 @@
               <option value="" disabled selected>📥 Download PDF ...</option>
               <option value="all">Satu File (Invoice + Kwitansi Terakhir)</option>
               <option value="page1">Lembar 1 Saja (Invoice)</option>
+              <option value="page2_lunas" id="optPage2_lunas">Kwitansi Lunas</option>
               <option value="page2_dp" id="optPage2_dp">Kwitansi DP</option>
               <option value="page2_p1" id="optPage2_p1">Kwitansi Pelunasan 1</option>
               <option value="page2_p2" id="optPage2_p2" class="hidden">Kwitansi Pelunasan 2</option>
@@ -389,7 +390,7 @@
                 </div>
               </div>
 
-              <!-- Kolom Rincian Subtotal & Multi-Pembayaran -->
+              <!-- Kolom Rincian Subtotal & Pembayaran -->
               <div class="w-full sm:w-1/2">
                 <div class="space-y-1 pt-0.5">
                   <div class="flex justify-between text-[11px]">
@@ -459,6 +460,20 @@
 
         <!-- HALAMAN 2: KWITANSI -->
         <div id="page-kwitansi" class="paper-page hidden flex flex-col justify-between gap-3">
+          <!-- Dropdown Pilihan Visual Kwitansi (Satu-satunya Dropdown di Area Kwitansi) -->
+          <div class="no-print bg-yellow-100 border border-yellow-300 p-2 rounded flex items-center justify-between gap-2 z-20">
+            <span class="text-xs font-bold text-yellow-900 flex items-center gap-1">
+              <i class="fa-solid fa-receipt"></i> Tampilkan Jenis Kwitansi:
+            </span>
+            <select id="kwiSelectorDropdown" onchange="changeKwitansiStage(this.value)" class="text-xs font-bold bg-white text-brand-black px-3 py-1 rounded border border-gray-300 outline-none shadow-sm cursor-pointer">
+              <option value="LUNAS">Kwitansi Pelunasan / Full</option>
+              <option value="DP">Kwitansi DP</option>
+              <option value="P1">Kwitansi Pelunasan 1</option>
+              <option value="P2" id="optKwiSelP2" class="hidden">Kwitansi Pelunasan 2</option>
+              <option value="P3" id="optKwiSelP3" class="hidden">Kwitansi Pelunasan 3</option>
+            </select>
+          </div>
+
           <div class="border-[5px] border-double border-gray-400 p-5 flex flex-col justify-between h-full relative overflow-hidden bg-white">
             <img src="OFO.png" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[70%] opacity-[0.04] pointer-events-none select-none -rotate-12" alt="Watermark Kwitansi">
             
@@ -625,7 +640,7 @@
     let activeInvoiceNum = "";
     let extraCounter = 0;
     let roomCounter = 0;
-    let currentActiveKwiStage = 'DP';
+    let currentActiveKwiStage = 'LUNAS';
 
     function formatRp(angka) { return new Intl.NumberFormat('id-ID').format(angka || 0); }
 
@@ -671,6 +686,11 @@
       document.getElementById('notifModal').classList.remove('hidden');
     }
 
+    function changeKwitansiStage(stageVal) {
+      currentActiveKwiStage = stageVal;
+      updatePreview();
+    }
+
     function updatePaymentFlow() {
       const pDP = parseInt(document.getElementById('inpPayDP').value) || 0;
       const p1 = parseInt(document.getElementById('inpPayPelunasan1').value) || 0;
@@ -679,13 +699,17 @@
       const c3 = document.getElementById('containerPayPelunasan3');
       const optP2 = document.getElementById('optPage2_p2');
       const optP3 = document.getElementById('optPage2_p3');
+      const optKwiP2 = document.getElementById('optKwiSelP2');
+      const optKwiP3 = document.getElementById('optKwiSelP3');
 
       if (p1 > 0) {
         c2.classList.remove('hidden');
         optP2.classList.remove('hidden');
+        optKwiP2.classList.remove('hidden');
       } else {
         c2.classList.add('hidden');
         optP2.classList.add('hidden');
+        optKwiP2.classList.add('hidden');
         document.getElementById('inpPayPelunasan2').value = '';
       }
 
@@ -694,9 +718,11 @@
       if (p2 > 0 && p1 > 0) {
         c3.classList.remove('hidden');
         optP3.classList.remove('hidden');
+        optKwiP3.classList.remove('hidden');
       } else {
         c3.classList.add('hidden');
         optP3.classList.add('hidden');
+        optKwiP3.classList.add('hidden');
         document.getElementById('inpPayPelunasan3').value = '';
       }
 
@@ -1207,17 +1233,23 @@
       document.getElementById('invoice-items').innerHTML = invoiceItemsHtml || `<tr><td colspan="${emptyColSpan}" class="py-3 text-center text-gray-400 italic">Belum ada item layanan dipilih.</td></tr>`;
       document.getElementById('outGrandTotal').textContent = `Rp ${formatRp(grandTotal)}`;
 
-      // Render Riwayat Pembayaran pada Invoice
+      // LOGIKA REVISI 1: Tampilan Riwayat Pembayaran Invoice
       let paymentLogHtml = '';
-      if (pDP > 0) paymentLogHtml += `<div class="flex justify-between text-gray-600"><span>Pembayaran DP</span><span class="font-bold text-brand-black">Rp ${formatRp(pDP)}</span></div>`;
-      if (p1 > 0) paymentLogHtml += `<div class="flex justify-between text-gray-600"><span>Pelunasan 1</span><span class="font-bold text-brand-black">Rp ${formatRp(p1)}</span></div>`;
-      if (p2 > 0) paymentLogHtml += `<div class="flex justify-between text-gray-600"><span>Pelunasan 2</span><span class="font-bold text-brand-black">Rp ${formatRp(p2)}</span></div>`;
-      if (p3 > 0) paymentLogHtml += `<div class="flex justify-between text-gray-600"><span>Pelunasan 3</span><span class="font-bold text-brand-black">Rp ${formatRp(p3)}</span></div>`;
-
-      if (totalPaid === 0) {
-        paymentLogHtml = `<div class="flex justify-between text-gray-500 font-medium"><span>Telah Dibayar</span><span class="font-bold text-brand-black">Rp 0</span></div>`;
+      if (status === 'PAID' && (p1 === 0 && p2 === 0 && p3 === 0)) {
+        // LUNAS LANGSUNG (FULL)
+        paymentLogHtml = `<div class="flex justify-between text-[11px] font-bold text-gray-700 border-t border-gray-100 pt-1"><span>Total Dibayar (Lunas)</span><span class="text-green-700">Rp ${formatRp(totalPaid)}</span></div>`;
       } else {
-        paymentLogHtml += `<div class="flex justify-between text-[11px] font-bold text-gray-700 border-t border-dashed border-gray-200 pt-0.5 mt-0.5"><span>Total Dibayar</span><span>Rp ${formatRp(totalPaid)}</span></div>`;
+        // PEMBAYARAN SEBAGIAN / BERTAHAP
+        if (pDP > 0) paymentLogHtml += `<div class="flex justify-between text-gray-600"><span>Pembayaran DP</span><span class="font-bold text-brand-black">Rp ${formatRp(pDP)}</span></div>`;
+        if (p1 > 0) paymentLogHtml += `<div class="flex justify-between text-gray-600"><span>Pelunasan 1</span><span class="font-bold text-brand-black">Rp ${formatRp(p1)}</span></div>`;
+        if (p2 > 0) paymentLogHtml += `<div class="flex justify-between text-gray-600"><span>Pelunasan 2</span><span class="font-bold text-brand-black">Rp ${formatRp(p2)}</span></div>`;
+        if (p3 > 0) paymentLogHtml += `<div class="flex justify-between text-gray-600"><span>Pelunasan 3</span><span class="font-bold text-brand-black">Rp ${formatRp(p3)}</span></div>`;
+
+        if (totalPaid === 0) {
+          paymentLogHtml = `<div class="flex justify-between text-gray-500 font-medium"><span>Telah Dibayar</span><span class="font-bold text-brand-black">Rp 0</span></div>`;
+        } else {
+          paymentLogHtml += `<div class="flex justify-between text-[11px] font-bold text-gray-700 border-t border-dashed border-gray-200 pt-0.5 mt-0.5"><span>Total Dibayar</span><span>Rp ${formatRp(totalPaid)}</span></div>`;
+        }
       }
 
       document.getElementById('outPaymentLogs').innerHTML = paymentLogHtml;
@@ -1232,17 +1264,28 @@
         containerNote.classList.add('hidden');
       }
 
-      // Kwitansi Terakhir / Aktif Update
+      // Sync selector dropdown kwitansi
+      const kwiSelector = document.getElementById('kwiSelectorDropdown');
+      if (kwiSelector) {
+        if (!currentActiveKwiStage) currentActiveKwiStage = 'LUNAS';
+        kwiSelector.value = currentActiveKwiStage;
+      }
+
+      // Kwitansi Visual Update
       updateKwitansiContent(currentActiveKwiStage, {
-        name, method, serviceSummaryDesc, pDP, p1, p2, p3, checkIn, checkOut
+        name, method, serviceSummaryDesc, pDP, p1, p2, p3, grandTotal, totalPaid, checkIn, checkOut
       });
     }
 
+    // LOGIKA REVISI 2: Kwitansi Dinamis berdasarkan Pilihan Dropdown & Input Nominal
     function updateKwitansiContent(stage, data) {
       let stageTitle = "KWITANSI";
       let kwiAmount = 0;
 
-      if (stage === 'DP') {
+      if (stage === 'LUNAS') {
+        stageTitle = "KWITANSI PELUNASAN (FULL)";
+        kwiAmount = data.totalPaid > 0 ? data.totalPaid : data.grandTotal;
+      } else if (stage === 'DP') {
         stageTitle = "KWITANSI DP";
         kwiAmount = data.pDP;
       } else if (stage === 'P1') {
@@ -1254,12 +1297,6 @@
       } else if (stage === 'P3') {
         stageTitle = "KWITANSI PELUNASAN 3";
         kwiAmount = data.p3;
-      } else {
-        // Auto / Terakhir
-        if (data.p3 > 0) { stageTitle = "KWITANSI PELUNASAN 3"; kwiAmount = data.p3; }
-        else if (data.p2 > 0) { stageTitle = "KWITANSI PELUNASAN 2"; kwiAmount = data.p2; }
-        else if (data.p1 > 0) { stageTitle = "KWITANSI PELUNASAN 1"; kwiAmount = data.p1; }
-        else { stageTitle = "KWITANSI DP"; kwiAmount = data.pDP; }
       }
 
       document.getElementById('kwiTitleHeader').textContent = stageTitle;
@@ -1279,19 +1316,13 @@
         kwiDatesDisplay.textContent = "-";
       }
 
-      const totalPaidAll = data.pDP + data.p1 + data.p2 + data.p3;
+      const totalPaidAll = data.totalPaid;
       const kwiPage = document.getElementById('page-kwitansi');
-      const optPage2DP = document.getElementById('optPage2_dp');
-      const optPage2P1 = document.getElementById('optPage2_p1');
 
-      if (totalPaidAll === 0) {
+      if (totalPaidAll === 0 && kwiAmount === 0) {
         kwiPage.classList.add('hidden');
-        optPage2DP.disabled = true;
-        optPage2P1.disabled = true;
       } else {
         kwiPage.classList.remove('hidden');
-        optPage2DP.disabled = false;
-        optPage2P1.disabled = false;
       }
     }
 
@@ -1319,11 +1350,11 @@
         return;
       }
 
-      if (mode === 'page2_dp') currentActiveKwiStage = 'DP';
+      if (mode === 'page2_lunas') currentActiveKwiStage = 'LUNAS';
+      else if (mode === 'page2_dp') currentActiveKwiStage = 'DP';
       else if (mode === 'page2_p1') currentActiveKwiStage = 'P1';
       else if (mode === 'page2_p2') currentActiveKwiStage = 'P2';
       else if (mode === 'page2_p3') currentActiveKwiStage = 'P3';
-      else currentActiveKwiStage = 'AUTO';
 
       updatePreview();
 
@@ -1373,6 +1404,7 @@
       document.getElementById('extraServicesList').innerHTML = '';
       document.getElementById('roomItemsList').innerHTML = '';
       extraCounter = 0; roomCounter = 0;
+      currentActiveKwiStage = 'LUNAS';
       document.getElementById('noExtraMsg').style.display = 'block';
       document.getElementById('noRoomMsg').classList.add('hidden');
       updatePaymentFlow();
