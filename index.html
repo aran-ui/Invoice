@@ -216,7 +216,7 @@
               <!-- Tampilan Info Nomor Invoice Otomatis -->
               <div class="md:col-span-2 bg-white/80 p-2.5 rounded border border-yellow-300 flex justify-between items-center">
                 <span class="text-xs font-bold text-gray-600">No. Invoice Otomatis:</span>
-                <span id="displayAutoInvNum" class="text-sm font-black text-brand-black font-mono">INV-2000/OFO/MMYY</span>
+                <span id="displayAutoInvNum" class="text-sm font-black text-brand-black font-mono">...</span>
               </div>
 
               <!-- Pembayaran DP -->
@@ -730,12 +730,13 @@
       try {
         const res = await fetch(`${SCRIPT_URL}?action=getNextInvNumber`);
         const json = await res.json();
-        if (json.status === 'success') {
+        if (json.status === 'success' && json.nextInvNumber) {
           activeInvoiceBase = json.nextInvNumber;
-          updatePreview();
         }
       } catch (err) {
         console.error("Gagal mengambil nomor invoice terpusat:", err);
+      } finally {
+        updatePreview();
       }
     }
 
@@ -1172,10 +1173,15 @@
       const dateSuffix = `${mm}${yy}`;
 
       document.getElementById('invSuffixPreview').textContent = `/OFO/${dateSuffix}`;
+      
+      // FORMULA UTAMA NOMOR INVOICE LANGSUNG DIBENTUK:
       activeInvoiceNum = `INV-${activeInvoiceBase}/OFO/${dateSuffix}`;
 
-      document.getElementById('displayAutoInvNum').textContent = activeInvoiceNum;
-      document.getElementById('outInvNumber').textContent = activeInvoiceNum;
+      const dispAuto = document.getElementById('displayAutoInvNum');
+      if (dispAuto) dispAuto.textContent = activeInvoiceNum;
+      
+      const outInv = document.getElementById('outInvNumber');
+      if (outInv) outInv.textContent = activeInvoiceNum;
 
       const now = new Date();
       const formattedIssueDate = formatDate(now.toISOString().split('T')[0]);
@@ -1529,6 +1535,7 @@
     window.onload = () => { 
       initDates(); 
       addRoomItem(); 
+      updatePreview();
       fetchNextInvoiceNumber();
     };
   </script>
