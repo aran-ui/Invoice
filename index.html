@@ -295,8 +295,8 @@
                 <div class="bg-gray-50 border border-gray-200 px-3 py-1 rounded text-right min-w-[160px]">
                   <p class="text-[9px] text-gray-500 uppercase font-bold tracking-wider mb-0.5">No. Tagihan</p>
                   <p class="font-bold text-brand-black text-xs mb-1" id="outInvNumber">...</p>
-                  <p class="text-[9px] text-gray-500 uppercase font-bold tracking-wider mb-0.5">Tanggal Terbit</p>
-                  <p class="font-bold text-brand-black text-xs" id="outDate">...</p>
+                  <p class="text-[9px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">Tgl Terbit / Jam / Kode</p>
+                  <p class="font-bold text-brand-black text-[11px]" id="outDate">...</p>
                 </div>
                 <div class="mt-1.5 inline-block px-2.5 py-0.5 text-[10px] font-bold rounded shadow-sm uppercase tracking-widest border" id="outInvStatusBadge">
                   UNPAID
@@ -343,7 +343,7 @@
                 </div>
               </div>
 
-              <!-- Kolom Kanan: Rincian Total, Sisa Tagihan & Metode Pembayaran (di bawah sisa tagihan) -->
+              <!-- Kolom Kanan: Rincian Total, Sisa Tagihan & Metode Pembayaran -->
               <div class="w-full sm:w-1/2">
                 <div class="space-y-1 pt-0.5">
                   <div class="flex justify-between text-[11px]">
@@ -374,7 +374,6 @@
 
           <!-- Bagian Bawah Invoice -->
           <div class="border-t border-gray-200 pt-2 text-[8px] leading-tight flex flex-col md:flex-row gap-3">
-            <!-- Kebijakan Pemesanan (Kiri) -->
             <div class="w-full md:w-5/12">
               <p class="font-bold uppercase tracking-widest mb-1 text-brand-black">KEBIJAKAN PEMESANAN</p>
               <ul class="list-disc pl-3 text-gray-600 space-y-1">
@@ -384,7 +383,6 @@
               </ul>
             </div>
 
-            <!-- Catatan Penting! (Kanan - 2 Kolom Rapi) -->
             <div class="w-full md:w-7/12">
               <p class="font-bold uppercase tracking-widest mb-1 text-brand-black">CATATAN PENTING!</p>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-1">
@@ -402,12 +400,10 @@
                 </ul>
               </div>
 
-              <!-- Peringatan Denda -->
               <p class="mt-1.5 font-semibold text-red-600 flex items-center gap-1">
                 <span>⚠️</span> Denda pelanggaran mulai dari Rp100.000 hingga biaya pengganti barang jika terjadi kerusakan fasilitas.
               </p>
 
-              <!-- Box Persetujuan -->
               <div class="mt-1 p-1 bg-gray-50 border border-gray-200 rounded text-[7.5px] text-gray-700 italic">
                 <p class="font-semibold text-brand-black">✅ Dengan pemesanan ini, saya menyatakan telah membaca, memahami, dan menyetujui seluruh peraturan di atas.</p>
               </div>
@@ -427,6 +423,8 @@
                 </div>
                 <div class="text-right">
                   <h2 class="text-2xl font-black text-brand-black tracking-widest uppercase">KWITANSI</h2>
+                  <!-- Tanggal terbit otomatis bawah tulisan Kwitansi -->
+                  <p class="text-[9px] font-bold text-gray-600 uppercase tracking-tight mt-0.5" id="kwiIssueMeta">-</p>
                 </div>
               </div>
 
@@ -481,7 +479,6 @@
 
             <!-- Bagian Bawah Kwitansi LENGKAP -->
             <div class="border-t border-gray-200 pt-2 text-[8px] leading-tight flex flex-col md:flex-row gap-3">
-              <!-- Kebijakan Pemesanan (Kiri) -->
               <div class="w-full md:w-5/12">
                 <p class="font-bold uppercase tracking-widest mb-1 text-brand-black">KEBIJAKAN PEMESANAN</p>
                 <ul class="list-disc pl-3 text-gray-600 space-y-1">
@@ -491,7 +488,6 @@
                 </ul>
               </div>
 
-              <!-- Catatan Penting! (Kanan - 2 Kolom Rapi) -->
               <div class="w-full md:w-7/12">
                 <p class="font-bold uppercase tracking-widest mb-1 text-brand-black">CATATAN PENTING!</p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-1">
@@ -509,12 +505,10 @@
                   </ul>
                 </div>
 
-                <!-- Peringatan Denda -->
                 <p class="mt-1.5 font-semibold text-red-600 flex items-center gap-1">
                   <span>⚠️</span> Denda pelanggaran mulai dari Rp100.000 hingga biaya pengganti barang jika terjadi kerusakan fasilitas.
                 </p>
 
-                <!-- Box Persetujuan -->
                 <div class="mt-1 p-1 bg-gray-50 border border-gray-200 rounded text-[7.5px] text-gray-700 italic">
                   <p class="font-semibold text-brand-black">✅ Dengan pemesanan ini, saya menyatakan telah membaca, memahami, dan menyetujui seluruh peraturan di atas.</p>
                 </div>
@@ -861,6 +855,7 @@
       const method = document.getElementById('inpMethod').value;
       const manualInvNumInput = document.getElementById('inpManualInvNum') ? document.getElementById('inpManualInvNum').value.trim() : '';
       const noteInput = document.getElementById('inpNote') ? document.getElementById('inpNote').value.trim() : '';
+      const issuerCode = document.getElementById('inpIssuerCode').value || '-';
 
       let roomTotal = 0;
       let invoiceItemsHtml = '';
@@ -949,7 +944,15 @@
       activeInvoiceNum = `INV-${finalInvNumber}/OFO/${dateSuffix}`;
 
       document.getElementById('outInvNumber').textContent = activeInvoiceNum;
-      document.getElementById('outDate').textContent = formatDate(new Date().toISOString().split('T')[0]);
+
+      // Format Waktu & Tanggal Otomatis Penerbitan (Tanggal terbit / Jam pembuatan / Kode penerbit)
+      const now = new Date();
+      const formattedIssueDate = formatDate(now.toISOString().split('T')[0]);
+      const formattedTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const issueMetaText = `${formattedIssueDate} / ${formattedTime} / ${issuerCode}`;
+
+      document.getElementById('outDate').textContent = issueMetaText;
+      document.getElementById('kwiIssueMeta').textContent = issueMetaText;
 
       const badge = document.getElementById('outInvStatusBadge');
       if(status === 'PAID') {
@@ -1069,7 +1072,6 @@
       const rawName = document.getElementById('inpName').value.trim() || 'TAMU';
       const cleanName = rawName.toUpperCase().replace(/\s+/g, ' ').replace(/[^A-Z0-9\s]/g, '');
       
-      // Ubah activeInvoiceNum "INV-1201/OFO/1026" -> "INV_NAMA BOOKING-1201_OFO_1026"
       const formattedInvNum = activeInvoiceNum
         .replace('/', '_')
         .replace('/', '_')
